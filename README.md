@@ -92,7 +92,7 @@ OpenPyXL	    Excel export functionality
 Installation & Setup
 
 1. Clone the Repository
-git clone https://github.com/yourusername/portfolio-analysis-dashboard.git
+git clone https://github.com/Swathi-hub-1/portfolio-analysis-dashboard.git
 cd portfolio-analysis-dashboard
 
 2. Install Dependencies

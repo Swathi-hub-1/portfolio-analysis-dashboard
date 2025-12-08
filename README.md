@@ -7,12 +7,19 @@ The tool converts raw market data into easy-to-understand visual analytics suita
 About the Project
 
 Portfolio Analysis Dashboard is a comprehensive tool designed to help users understand and analyze stock portfolios with the depth typically seen in institutional research platforms.
-The application integrates live market data using Yahoo Finance, processes it with Pandas and NumPy, and visualizes results through Plotly within a clean, intuitive Streamlit interface.
 
-The dashboard is suitable for retail investors, finance students, and analysts who need a lightweight, customizable analytics environment.
+The application integrates:
+    Live market data from Yahoo Finance.
+    Fundamental financial data from the Financial Modeling Prep (FMP) API.
+    Analytics & performance metrics using Pandas, NumPy, and QuantStats.
+    Interactive visualizations using Plotly.
+    A clean, responsive Streamlit UI.
+
+This makes the dashboard suitable for retail investors, finance students, and analysts who need a lightweight, customizable analytics environment.
 
 
 Key Features
+
 1. Portfolio Overview
 
 Cumulative return, CAGR and active performance metrics
@@ -81,24 +88,30 @@ Fast, efficient, and export-ready for academic or practical use
 
 Tech Stack
 
-Streamlit	    Application UI
-yfinance	    Market data and fundamentals
-Pandas, NumPy	Data processing and calculations
-Plotly	        Interactive visualizations
-QuantStats	    Performance and risk reporting
-OpenPyXL	    Excel export functionality
+Streamlit	                            Application UI
+yfinance	                            Market data 
+Financial Modeling Prep (FMP) API       Fundamentals
+Pandas, NumPy	                        Data processing and calculations
+Plotly	                                Interactive visualizations
+QuantStats	                            Performance and risk reporting
+OpenPyXL	                            Excel export functionality
 
 
 Installation & Setup
 
 1. Clone the Repository
-git clone https://github.com/Swathi-hub-1/portfolio-analysis-dashboard.git
+git clone https://github.com/yourusername/portfolio-analysis-dashboard.git
 cd portfolio-analysis-dashboard
 
-2. Install Dependencies
+2. Create & Activate a Virtual Environment
+python -m venv venv
+source venv/bin/activate  -> macOS/Linux
+venv\Scripts\activate     -> Windows
+
+3. Install Dependencies
 pip install -r requirements.txt
 
-3. Run the Dashboard
+4. Run the Dashboard
 streamlit run app.py
 
 
@@ -111,6 +124,8 @@ numpy
 plotly
 quantstats
 openpyxl
+python-dotenv
+requests
 
 
 Author

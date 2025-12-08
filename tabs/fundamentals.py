@@ -19,14 +19,14 @@ def fundamental_insights(valid_tickers, info_dict):
             info = info_dict.get(t, {}) or {}
             
             rows.append({"Symbol": t,
-                         "Company": info.get("longName"),
+                         "Company": info.get("companyName"),
                          "Sector": info.get("sector"),
-                         "Market Cap (₹T)": round(info.get("marketCap", 0) / 1e12, 3,) if info.get("marketCap") else None,
-                         "P/E Ratio": info.get("trailingPE"),
-                         "Forward P/E": info.get("forwardPE"),
-                         "P/B Ratio": info.get("priceToBook"),
-                         "EPS (TTM)": info.get("trailingEps"),
-                         "ROE (%)": round(info.get("returnOnEquity", 0) * 100, 2) if info.get("returnOnEquity") else None,
+                         "Market Cap (₹T)": round(info.get("mktCap", 0) / 1e12, 3,) if info.get("marketCap") else None,
+                         "P/E Ratio": info.get("priceEarningsRatio"),
+                        #  "Forward P/E": info.get("forwardPE"),
+                         "P/B Ratio": info.get("priceToBookRatio"),
+                         "EPS (TTM)": info.get("eps"),
+                         "ROE (%)": round(info.get("returnOnEquityTTM", 0) * 100, 2) if info.get("returnOnEquity") else None,
                          "Profit Margin (%)": round(info.get('profitMargins', 0) * 100, 2) if info.get('profitMargins') else None,})
         fundamentals_df = pd.DataFrame(rows)
 

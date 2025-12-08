@@ -1,9 +1,12 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
-import numpy as np
+import requests
+import os
+from dotenv import load_dotenv
 from typing import Tuple, Dict
 
+load_dotenv() 
 
 @st.cache_data(show_spinner=False)
 def load_tickers(path: str = "Tickers.xlsx") -> pd.DataFrame:
@@ -38,16 +41,22 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
         return pd.DataFrame(columns=["High", "Low", "Close"])
 
 
+API_KEY = os.getenv("FMP_API_KEY")
+if not API_KEY:
+    raise ValueError("FMP_API_KEY not found. Add it to .env (local) or Streamlit Secrets (cloud).")
+
+
 @st.cache_data(show_spinner=False)
 def fetch_ticker_info(ticker: str) -> dict:
+    url = f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={API_KEY}"
     try:
-        t = yf.Ticker(ticker)
-        info = t.info if hasattr(t, "info") else {}
-        return info or {}
-    except Exception:
+        r = requests.get(url, timeout=10)
+        data = r.json()
+        return data[0] if isinstance(data, list) and data else {}
+    except:
         return {}
-
-
+    
+    
 @st.cache_data(show_spinner=False)
 def fetch_dividends(ticker: str) -> pd.Series:
     try:

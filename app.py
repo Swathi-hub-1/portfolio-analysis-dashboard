@@ -67,7 +67,7 @@ if st.session_state.generated:
 
     price_df = st.session_state.loaded_data["price_df"]
     price_dict = st.session_state.loaded_data["price_dict"]
-    info_dict = st.session_state.loaded_data["info_dict"]
+    # info_dict = st.session_state.loaded_data["info_dict"]
     div_dict = st.session_state.loaded_data["div_dict"]
     buy_price = st.session_state.loaded_data["buy_price"]
     buy_date_actual = st.session_state.loaded_data["buy_date_actual"]
@@ -95,7 +95,7 @@ if st.session_state.generated:
 
     with tab3:
         from tabs.fundamentals import fundamental_insights
-        fundamentals_df = fundamental_insights(valid_tickers, info_dict)
+        fundamentals_df = fundamental_insights(valid_tickers, latest_price)
 
     with tab4:
         from tabs.dividends import dividend_income

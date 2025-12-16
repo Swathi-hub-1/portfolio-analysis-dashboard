@@ -41,22 +41,21 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
         return pd.DataFrame(columns=["High", "Low", "Close"])
 
 
-API_KEY = os.getenv("FMP_API_KEY")
-if not API_KEY:
-    raise ValueError("FMP_API_KEY not found. Add it to .env (local) or Streamlit Secrets (cloud).")
-
-
 @st.cache_data(show_spinner=False)
-def fetch_ticker_info(ticker: str) -> dict:
-    url = f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={API_KEY}"
+def fetch_fundamentals(ticker: str) -> dict:
     try:
-        r = requests.get(url, timeout=10)
-        data = r.json()
-        return data[0] if isinstance(data, list) and data else {}
-    except:
-        return {}
-    
-    
+        t = yf.Ticker(ticker)
+        income = t.financials
+        balance = t.balance_sheet
+        shares = t.get_shares_full()
+        shares_outstanding = shares[-1] if shares is not None and not shares.empty else None
+        return{"income": income,
+               "balance": balance,
+               "s_o": shares_outstanding}
+    except Exception:
+        return{}
+
+   
 @st.cache_data(show_spinner=False)
 def fetch_dividends(ticker: str) -> pd.Series:
     try:
@@ -97,7 +96,7 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
     global_end = max(ends) + pd.Timedelta(days=1)
 
     price_dict = {}
-    info_dict = {}
+    # info_dict = {}
     div_dict = {}
     buy_price = {}
     buy_date_actual = {}
@@ -114,7 +113,7 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
         if ser is None or ser.empty:
             missing.append(t)
             price_dict[t] = pd.Series(dtype=float, name=t)
-            info_dict[t] = {}
+            # info_dict[t] = {}
             div_dict[t] = pd.Series(dtype=float)
             buy_price[t] = None
             buy_date_actual[t] = None
@@ -122,8 +121,8 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
             continue
 
         price_dict[t] = ser
-        info = fetch_ticker_info(t)
-        info_dict[t] = info
+        # info = fetch_ticker_info(t)
+        # info_dict[t] = info
         div = fetch_dividends(t)
         div_dict[t] = div
 
@@ -147,7 +146,7 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
 
     return {"price_df": price_df,
             "price_dict": price_dict,
-            "info_dict": info_dict,
+            # "info_dict": info_dict,
             "div_dict": div_dict,
             "buy_price": buy_price,
             "buy_date_actual": buy_date_actual,

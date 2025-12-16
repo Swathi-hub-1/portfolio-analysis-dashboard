@@ -10,7 +10,6 @@ Portfolio Analysis Dashboard is a comprehensive tool designed to help users unde
 
 The application integrates:
     Live market data from Yahoo Finance.
-    Fundamental financial data from the Financial Modeling Prep (FMP) API.
     Analytics & performance metrics using Pandas, NumPy, and QuantStats.
     Interactive visualizations using Plotly.
     A clean, responsive Streamlit UI.
@@ -90,7 +89,6 @@ Tech Stack
 
 Streamlit	                            Application UI
 yfinance	                            Market data 
-Financial Modeling Prep (FMP) API       Fundamentals
 Pandas, NumPy	                        Data processing and calculations
 Plotly	                                Interactive visualizations
 QuantStats	                            Performance and risk reporting

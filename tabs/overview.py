@@ -16,7 +16,7 @@ def metric_row(items):
 
 
 def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict):
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Portfolio Summary Overview</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Portfolio Summary Overview</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         share_values = {t: safe_float(latest_price.get(t)) * float(shares.get(t, 0)) for t in valid_tickers}

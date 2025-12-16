@@ -67,7 +67,6 @@ if st.session_state.generated:
 
     price_df = st.session_state.loaded_data["price_df"]
     price_dict = st.session_state.loaded_data["price_dict"]
-    # info_dict = st.session_state.loaded_data["info_dict"]
     div_dict = st.session_state.loaded_data["div_dict"]
     buy_price = st.session_state.loaded_data["buy_price"]
     buy_date_actual = st.session_state.loaded_data["buy_date_actual"]
@@ -105,5 +104,4 @@ if st.session_state.generated:
         from tabs.reports import report
         report(pf_summary_table, fundamentals_df, div_df, pf_returns)
 
-    st.success("✅ Analysis ready — You can download it in Reports tab.")
 

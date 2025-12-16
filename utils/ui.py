@@ -1,14 +1,13 @@
 import streamlit as st
 
-ACCENT = '#48cae4'
-ACCENT_2 = '#00b4d8'
-PANE = '#a2d2ff'
+ACCENT =  '#1c98db'
+ACCENT_2 = '#0096c7'
+# ACCENT_3 = "#efefef"
 TEXT = '#f8f9fa'
-
 
 def apply_custom_css():
     st.markdown(f"""
-                <style>    
+                <style>   
                 div.stButton > button {{background-color: {ACCENT};
                                         color: {TEXT};
                                         border-radius: 10px;
@@ -22,14 +21,12 @@ def apply_custom_css():
                                               box-shadow: 0px 0px 12px {ACCENT_2};
                                               transform: translateY(-2px);}}
 
-                div[data-testid="stMetric"] {{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-                                             border: 1px solid #90e0ef;
-                                             border-radius: 14px;
-                                             padding: 12px;
-                                             transition: all 0.3s ease;}}
+                div[data-testid="stMetric"] {{border: 1.4px solid {ACCENT_2};
+                                              border-radius: 15px;
+                                              padding: 12px;
+                                              transition: all 0.3s ease;}}
 
-                div[data-testid="stMetric"]:hover {{border-color: {ACCENT_2};
-                                                    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); /* subtle tint */
+                div[data-testid="stMetric"]:hover {{border-color: {ACCENT};
                                                     transform: translateY(-2px);}}
 
                 details{{border-radius: 10px !important;
@@ -39,32 +36,32 @@ def apply_custom_css():
                         transition: 0.25s ease-in-out !important;
                         padding: 4px !important;}}
 
-                summary {{color: {PANE} !important;
+                summary {{color: {ACCENT} !important;
                          font-weight: 600 !important;
                          padding: 6px !important;
                          cursor: pointer !important;}}
 
                 details:hover {{transform: scale(1.01);
                                 border-color: {ACCENT_2};
-                                box-shadow: 0 0 12px {ACCENT_2}33;}}
+                                box-shadow: 0 0 12px {ACCENT_2};}}
 
-                .stTabs [data-baseweb="tab"]{{color: #AAB4C2;
+                .stTabs [data-baseweb="tab"]{{color: {ACCENT};
                                               transition: all 0.25s ease !important;
-                                              padding: 12px 22px !important;  /* Better spacing */
+                                              padding: 12px 22px !important;  
                                               font-size: 1rem !important;
                                               font-weight: 900 !important;
                                               opacity: 0.9;}}
 
                 .stTabs [data-baseweb="tab"]:hover {{opacity: 1.9; transform: translateY(-2px);}}
 
-                .stTabs [data-baseweb="tab"][aria-selected="true"] {{color: #00B4D8 !important;
+                .stTabs [data-baseweb="tab"][aria-selected="true"] {{color: {ACCENT_2} !important;
                                                                      font-weight: 900 !important;
                                                                      opacity: 1.9;
                                                                      transform: translateY(-1px);}}    
                 </style>""", unsafe_allow_html=True)
 
 def header():
-    st.markdown(f"<h1 style='text-align:center; color:{ACCENT_2};'>💼 Portfolio Analysis Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align:center; color:{ACCENT_2};'>Portfolio Analysis Dashboard</h1>", unsafe_allow_html=True)
     st.markdown(f"<hr style='border:0.5px solid #90e0ef; opacity:0.8;'>", unsafe_allow_html=True)
 
 
@@ -78,7 +75,7 @@ def home_page():
                     <h3 style='color:{ACCENT_2}; font-size:24px; font-weight:700; margin-bottom:5px'>
                         Your Personal Portfolio Insights Dashboard
                     </h3>
-                    <p style='color:#bbdfff; font-size:14px; margin:0 auto; margin-top:10px;'>
+                    <p style='color:{ACCENT_2}; font-size:14px; margin:0 auto; margin-top:10px;'>
                          Understand your investments with clarity — performance, risk, valuation, and income analytics in one place.
                     </p>
                 </div>""", unsafe_allow_html=True)
@@ -88,7 +85,7 @@ def home_page():
                     <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px'>
                         About This Dashboard
                     </h4>
-                     <p style="color:#d6eaff; font-size:15px; line-height:1.6; margin-top:10px;">
+                     <p style="color:{ACCENT}; font-size:15px; line-height:1.6; margin-top:10px;">
                         This dashboard is built to make equity analysis easy to understand, even for beginners, 
                         while still offering the depth needed for serious portfolio evaluation. It takes real stock 
                         market data and converts it into clean, visual insights — helping you track your 
@@ -103,7 +100,7 @@ def home_page():
                     <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
                         How to use
                     </h4>
-                    <ul style="color:#bbdfff; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
+                    <ul style="color:{ACCENT}; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
                         Use the sidebar on the left to begin.
                         <li><b>Add Tickers</b> : Search and select the stocks you own.</li>
                         <li><b>Select Date Range</b> – Choose the period during which you held each stock.</li>
@@ -113,7 +110,7 @@ def home_page():
                     <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
                         What You Can Explore
                     </h4>
-                    <ul style="color:#bbdfff; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
+                    <ul style="color:{ACCENT}; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
                         <li><b>Portfolio Performance</b> – Track returns, allocation, cost basis, and price movement trends.</li>
                         <li><b>Risk Analysis</b> – Understand volatility, drawdowns, beta, Sharpe ratio, and other risk metrics.</li>
                         <li><b>Fundamental Strength</b> – Explore valuation ratios, profitability metrics, quality factors, and sector comparisons.</li>
@@ -123,7 +120,7 @@ def home_page():
                 </div>""",unsafe_allow_html=True)
     
     st.markdown(f"""
-                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:0.7; color:#a4c8ff; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
+                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:0.7; color:{ACCENT}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
                     2025 • Portfolio Analytics Dashboard  
                     <br>
                     Built for learning, research, and informed investing.

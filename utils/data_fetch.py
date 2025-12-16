@@ -96,7 +96,6 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
     global_end = max(ends) + pd.Timedelta(days=1)
 
     price_dict = {}
-    # info_dict = {}
     div_dict = {}
     buy_price = {}
     buy_date_actual = {}
@@ -113,7 +112,6 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
         if ser is None or ser.empty:
             missing.append(t)
             price_dict[t] = pd.Series(dtype=float, name=t)
-            # info_dict[t] = {}
             div_dict[t] = pd.Series(dtype=float)
             buy_price[t] = None
             buy_date_actual[t] = None
@@ -121,8 +119,6 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
             continue
 
         price_dict[t] = ser
-        # info = fetch_ticker_info(t)
-        # info_dict[t] = info
         div = fetch_dividends(t)
         div_dict[t] = div
 
@@ -146,7 +142,6 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
 
     return {"price_df": price_df,
             "price_dict": price_dict,
-            # "info_dict": info_dict,
             "div_dict": div_dict,
             "buy_price": buy_price,
             "buy_date_actual": buy_date_actual,

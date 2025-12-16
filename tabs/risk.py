@@ -12,7 +12,7 @@ def metric_row(items):
                 col.metric(label, value, delta)
 
 def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
         metric_row([("Annualized Volatility", f"{metrics['volatility']:.2%}", None),

@@ -31,12 +31,12 @@ def format_market_cap(value):
     units = [("T", 1e12), ("B", 1e9), ("M", 1e6), ("K", 1e3)]
     for suffix, factor in units:
         if value >= factor:
-            return f"{round(value / factor, 2)} {suffix}"
+            return f"₹{round(value / factor, 2)} {suffix}"
     return str(value)
 
 
 def fundamental_insights(valid_tickers, latest_price):
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Fundamental Strength & Valuation</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Fundamental Strength & Valuation</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         rows = []

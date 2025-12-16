@@ -3,7 +3,7 @@ import pandas as pd
 from utils.charts import line_chart, pie_chart, bar_chart
 
 def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_price, shares):
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Dividend Income & Yield Analytics</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Dividend Income & Yield Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         div_rows = []

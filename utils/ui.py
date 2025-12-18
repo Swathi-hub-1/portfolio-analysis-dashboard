@@ -1,7 +1,12 @@
 import streamlit as st
 
+<<<<<<< HEAD
 ACCENT = '#957fef'
 ACCENT_2 = '#7161ef'
+=======
+ACCENT =  '#1c98db'
+ACCENT_2 = '#0096c7'
+>>>>>>> f6cc100623df7f1887a81cc0a4d23761363fac82
 TEXT = '#f8f9fa'
 
 def apply_custom_css():

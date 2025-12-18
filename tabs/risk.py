@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from utils.analytics import compute_stock_risk_metrics, compute_rolling_metrics
 from utils.charts import area_chart, scatter_plot, heatmap_chart, dual_axis_line_chart
+from utils.ui import beta_color
 
 def metric_row(items):
         cols = st.columns(len(items))
@@ -12,7 +13,7 @@ def metric_row(items):
                 col.metric(label, value, delta)
 
 def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
-        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#7161ef;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
         metric_row([("Annualized Volatility", f"{metrics['volatility']:.2%}", None),
@@ -31,26 +32,27 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                        "Max Drawdown", 
                                        "VaR 95%", 
                                        "CVaR 95%"]].copy()
-            st.subheader("Stock-Level Risk Metrics")
-            st.dataframe(
-                display_risk_df.style.format({"Volatility (Annualized)": "{:.2%}",
-                                              "Beta": "{:.2f}",
-                                              "Max Drawdown": "{:.2%}",
-                                              "VaR 95%": "{:.2%}",
-                                              "CVaR 95%": "{:.2%}"}), hide_index=True, width="stretch")
+            st.markdown("<h3 style=color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
+            st.dataframe(display_risk_df.style.format({"Volatility (Annualized)": "{:.2%}",
+                                                       "Beta": "{:.2f}",
+                                                       "Max Drawdown": "{:.2%}",
+                                                       "VaR 95%": "{:.2%}",
+                                                       "CVaR 95%": "{:.2%}"}).map(beta_color, subset=["Beta"]), hide_index=True, width="stretch")
         else:
             st.info("Insufficient data for stock-wise risk metrics.")
 
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Drawdown History (From Peak)</h3>", unsafe_allow_html=True)
         if not pf_returns.empty:
             dd = pf_returns.to_drawdown_series()
-            fig_dd = area_chart(dd.index, dd.values, title="Drawdown History (From Peak)")
+            fig_dd = area_chart(dd.index, dd.values, title=None)
             st.plotly_chart(fig_dd, width="stretch")
         else:
             st.info("Insufficient returns data for drawdown chart.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
-
+        
+        st.markdown("<h3 style=color:#7161ef;'>Risk–Return Positioning (Annualized)</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
             rr_df = pd.DataFrame({"Ticker": risk_df["Ticker"],
                                   "Volatility": risk_df["Volatility (Annualized)"],
@@ -62,20 +64,22 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                   color=None,          
                                   hover="Ticker",
                                   trendline=None,      
-                                  title="Risk–Return Positioning (Annualized)")
+                                  title="")
             st.plotly_chart(fig_rr, width="stretch")
         else:
             st.info("Not enough data for Risk/Return scatter plot.")
 
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
-
+        
+        st.markdown("<h3 style=color:#7161ef;'>Correlation Matrix</h3>", unsafe_allow_html=True)
         if not price_df.empty:
             corr = price_df[valid_tickers].pct_change().dropna().corr()
-            fig_corr = heatmap_chart(corr, title="Correlation Matrix")
+            fig_corr = heatmap_chart(corr, title="")
             st.plotly_chart(fig_corr, width="stretch")
         else:
             st.info("Correlation heatmap cannot be created (no price data).")
 
+        st.markdown("<h3 style=color:#7161ef;'>Rolling Volatility & Sharpe Ratio</h3>", unsafe_allow_html=True)
         rolling_vol, rolling_sharpe = compute_rolling_metrics(metrics["returns"], window=60)
         df_roll = pd.DataFrame({"Date": metrics["returns"].index,
                                 "Rolling Vol": rolling_vol,
@@ -87,5 +91,5 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                            y2="Rolling Sharpe",
                                            y1_name="Rolling Volatility",
                                            y2_name="Rolling Sharpe Ratio",
-                                           title="Rolling Volatility & Sharpe Ratio")
+                                           title="")
         st.plotly_chart(fig_rolling, width="stretch")

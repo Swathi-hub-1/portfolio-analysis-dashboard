@@ -1,8 +1,7 @@
 import streamlit as st
 
-ACCENT =  '#1c98db'
-ACCENT_2 = '#0096c7'
-# ACCENT_3 = "#efefef"
+ACCENT = '#957fef'
+ACCENT_2 = '#7161ef'
 TEXT = '#f8f9fa'
 
 def apply_custom_css():
@@ -28,6 +27,12 @@ def apply_custom_css():
 
                 div[data-testid="stMetric"]:hover {{border-color: {ACCENT};
                                                     transform: translateY(-2px);}}
+                
+                div[data-testid="stDataFrame"] thead th {{background-color: {ACCENT_2} !important;
+                                                          color: {TEXT} !important;
+                                                          font-weight: 600 !important;
+                                                          text-align: center !important;
+                                                          border-bottom: 1px solid {ACCENT};}}
 
                 details{{border-radius: 10px !important;
                         border: 1px solid {ACCENT_2}33 !important;
@@ -45,14 +50,16 @@ def apply_custom_css():
                                 border-color: {ACCENT_2};
                                 box-shadow: 0 0 12px {ACCENT_2};}}
 
-                .stTabs [data-baseweb="tab"]{{color: {ACCENT};
+                .stTabs [data-baseweb="tab"]{{color: {ACCENT_2};
                                               transition: all 0.25s ease !important;
                                               padding: 12px 22px !important;  
-                                              font-size: 1rem !important;
+                                              font-size: 10px;
                                               font-weight: 900 !important;
                                               opacity: 0.9;}}
 
-                .stTabs [data-baseweb="tab"]:hover {{opacity: 1.9; transform: translateY(-2px);}}
+                .stTabs [data-baseweb="tab"]:hover {{opacity: 1.9;
+                                                     font-size: 20px;
+                                                     transform: translateY(-2px);}}
 
                 .stTabs [data-baseweb="tab"][aria-selected="true"] {{color: {ACCENT_2} !important;
                                                                      font-weight: 900 !important;
@@ -62,11 +69,11 @@ def apply_custom_css():
 
 def header():
     st.markdown(f"<h1 style='text-align:center; color:{ACCENT_2};'>Portfolio Analysis Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<hr style='border:0.5px solid #90e0ef; opacity:0.8;'>", unsafe_allow_html=True)
+    st.markdown(f"<hr style='border:0.5px solid {ACCENT}; opacity:0.8;'>", unsafe_allow_html=True)
 
 
 def sidebar_config():
-    st.sidebar.markdown(f"<h1 style='color:{ACCENT_2}; text-align: center; width: 100%;'>Portfolio Input Panel</h1><hr style='border:0.5px solid #90e0ef;'>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"<h1 style='color:{ACCENT_2}; text-align: center; width: 100%;'>Portfolio Input Panel</h1><hr style='border:0.5px solid {ACCENT};'>", unsafe_allow_html=True)
     
 
 def home_page():
@@ -75,17 +82,17 @@ def home_page():
                     <h3 style='color:{ACCENT_2}; font-size:24px; font-weight:700; margin-bottom:5px'>
                         Your Personal Portfolio Insights Dashboard
                     </h3>
-                    <p style='color:{ACCENT_2}; font-size:14px; margin:0 auto; margin-top:10px;'>
+                    <h6 style='color:{ACCENT_2}; font-size:14px; margin:0 auto; margin-top:10px;'>
                          Understand your investments with clarity — performance, risk, valuation, and income analytics in one place.
-                    </p>
+                    </h6>
                 </div>""", unsafe_allow_html=True)
     
     st.markdown(f"""
-                <div style='background:rgba(72,202,228,0.05); border:1px solid rgba(0,180,216,0.20); border-radius:12px; padding:25px 30px; margin-top:40px;'>
-                    <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px'>
+                <div style='background:rgba(149,127,239,0.1); border:1px solid rgba(149,127,239,0.3); border-radius:12px; padding:25px 30px; margin-top:40px;'>
+                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px'>
                         About This Dashboard
                     </h4>
-                     <p style="color:{ACCENT}; font-size:15px; line-height:1.6; margin-top:10px;">
+                     <p style="font-size:15px; line-height:1.6; margin-top:10px;">
                         This dashboard is built to make equity analysis easy to understand, even for beginners, 
                         while still offering the depth needed for serious portfolio evaluation. It takes real stock 
                         market data and converts it into clean, visual insights — helping you track your 
@@ -97,20 +104,20 @@ def home_page():
                         reviewing your investments with more detail, the interface adapts to your pace and 
                         gives you clarity through charts, summaries, and real-time data.
                     </p>
-                    <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
+                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
                         How to use
                     </h4>
-                    <ul style="color:{ACCENT}; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
+                    <ul style="font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
                         Use the sidebar on the left to begin.
                         <li><b>Add Tickers</b> : Search and select the stocks you own.</li>
                         <li><b>Select Date Range</b> – Choose the period during which you held each stock.</li>
                         <li><b>Enter Shares</b> – Specify how many units you hold for each stock.</li>
                         <li><b>Click Generate Analysis</b> – View performance, risk, fundamentals & dividends.</li>
                     </ul>
-                    <h4 style='color:{ACCENT_2}; font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
+                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
                         What You Can Explore
                     </h4>
-                    <ul style="color:{ACCENT}; font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
+                    <ul style="font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
                         <li><b>Portfolio Performance</b> – Track returns, allocation, cost basis, and price movement trends.</li>
                         <li><b>Risk Analysis</b> – Understand volatility, drawdowns, beta, Sharpe ratio, and other risk metrics.</li>
                         <li><b>Fundamental Strength</b> – Explore valuation ratios, profitability metrics, quality factors, and sector comparisons.</li>
@@ -120,7 +127,7 @@ def home_page():
                 </div>""",unsafe_allow_html=True)
     
     st.markdown(f"""
-                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:0.7; color:{ACCENT}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
+                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:1.1; color:{ACCENT}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
                     2025 • Portfolio Analytics Dashboard  
                     <br>
                     Built for learning, research, and informed investing.
@@ -149,6 +156,7 @@ def color_gain_loss(val):
         pass
     return ""
 
+
 def color_trend_class(val):
     try:
         v = str(val).lower()
@@ -171,34 +179,12 @@ def color_trend_class(val):
         pass
     return ""
 
-
-def color_yield(val):
-    if val is None:
-        return "color: gray;"
-    try:
-        v = float(val)
-    except:
-        return ""
     
-    if v > 6:        
-        return "color: #4caf50;"
-    elif v > 3:       
-        return "color: #9ef01a;"
-    else:             
-        return "color: #f44336;"
-
-def color_current_yield(val):
-    if val is None:
-        return "color: gray;"
-    try:
-        v = float(val)
-    except:
-        return ""
-
-    if v > 4:        
-        return "color: #4caf50;"
-    elif v > 2:      
-        return "color: #9ef01a;"
-    else:
-        return "color: #f44336;"
-
+def beta_color(beta: float):
+    if beta == 1.0:
+        return "color: #2563eb; font-weight:600;"
+    elif beta > 1.0:
+        return "color: #f44336; font-weight:600;"  
+    elif beta < 1.0:
+        return "color: #4caf50; font-weight:600;"  
+ 

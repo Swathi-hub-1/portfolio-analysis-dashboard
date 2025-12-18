@@ -3,7 +3,7 @@ import pandas as pd
 from utils.charts import line_chart, pie_chart, bar_chart
 
 def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_price, shares):
-        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Dividend Income & Yield Analytics</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#7161ef;'>Dividend Income & Yield Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         div_rows = []
@@ -85,17 +85,19 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                              "Dividend CAGR (%)": round(div_cagr, 2) if div_cagr else None,})
         div_df = pd.DataFrame(div_rows)
 
-        st.subheader("Dividend Income Summary")
+        st.markdown("<h3 style=color:#7161ef;'>Dividend Income Summary</h3>", unsafe_allow_html=True)
         st.dataframe(div_df, hide_index=True, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Dividend Contribution by Stock</h3>", unsafe_allow_html=True)
         if not div_df.empty and div_df["Total Dividend Since Buy (₹)"].sum() > 0:
-            fig_income = pie_chart(div_df["Ticker"].tolist(), div_df["Total Dividend Since Buy (₹)"].tolist(), title="Dividend Contribution by Stock")
+            fig_income = pie_chart(div_df["Ticker"].tolist(), div_df["Total Dividend Since Buy (₹)"].tolist(), title=None)
             st.plotly_chart(fig_income, width="stretch")
         else:
             st.info("No dividend income to visualize for the selected holdings/date ranges.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Cumulative Dividend Income Trend</h3>", unsafe_allow_html=True)
         combined = []
         for t in valid_tickers:
             divs = div_dict.get(t)
@@ -111,19 +113,20 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                                  y="Dividend (₹)",
                                  color="Ticker",
                                  markers=True,
-                                 title="Cumulative Dividend Income Trend",
+                                 title=None,
                                  labels={"Date": "Date", "Dividend (₹)": "Cumulative Dividend (₹)"})
             st.plotly_chart(fig_cum, width="stretch")
 
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Dividend Metrics: DPS vs Yield vs Growth</h3>", unsafe_allow_html=True)
         fig_bar = bar_chart(div_df,
                             x="Ticker",
                             y="Last 12M Div (₹)",
                             color="Dividend CAGR (%)",
                             show_text=True,
                             hover_col="Ticker",
-                            title="Dividend Metrics: DPS vs Yield vs Growth")
+                            title=None)
         fig_bar.update_traces(texttemplate="%{text:.2f}%", textposition="outside")
         st.plotly_chart(fig_bar, width="stretch")
         return div_df

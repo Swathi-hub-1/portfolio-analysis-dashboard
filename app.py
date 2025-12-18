@@ -104,4 +104,3 @@ if st.session_state.generated:
         from tabs.reports import report
         report(pf_summary_table, fundamentals_df, div_df, pf_returns)
 
-

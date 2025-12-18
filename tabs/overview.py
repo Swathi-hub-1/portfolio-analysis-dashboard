@@ -16,7 +16,7 @@ def metric_row(items):
 
 
 def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict):
-        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Portfolio Summary Overview</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#7161ef;'>Portfolio Summary Overview</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         share_values = {t: safe_float(latest_price.get(t)) * float(shares.get(t, 0)) for t in valid_tickers}
@@ -54,7 +54,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         pf_summary_table.index += 1
         pf_summary_table.index.name = 'Sl. No.'
 
-        st.subheader("Holdings Breakdown")
+        st.markdown("<h3 style=color:#7161ef;'>Holdings Breakdown</h3>", unsafe_allow_html=True)
         st.dataframe(pf_summary_table.style.format({'Buy Price (₹)': '₹{:,.2f}',
                                                     'Latest Price (₹)': '₹{:,.2f}',
                                                     'Gain/Loss %': '{:.2%}',
@@ -77,24 +77,25 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             if c in display_df.columns:
                 display_df[c] = display_df[c].apply(lambda v: np.nan if v in (None, "None", "-") else safe_float(v))
 
-        st.subheader("Technical Position Health")
-        st.dataframe(
-            display_df.style.format({"RSI": "{:.2f}",
-                                     "20D Momentum %": "{:.2%}",
-                                     "52W High": "{:.2f}",
-                                     "% from 52W High": "{:.2%}",
-                                     "52W Low": "{:.2f}",
-                                     "% from 52W Low": "{:.2%}"}).map(color_rsi_category, subset=["RSI Category"]).map(color_trend_class, subset=["Trend"]), hide_index=True, width="stretch")
+        st.markdown("<h3 style=color:#7161ef;'>Technical Position Health</h3>", unsafe_allow_html=True)
+        st.dataframe(display_df.style.format({"RSI": "{:.2f}",
+                                              "20D Momentum %": "{:.2%}",
+                                              "52W High": "{:.2f}",
+                                              "% from 52W High": "{:.2%}",
+                                              "52W Low": "{:.2f}",
+                                              "% from 52W Low": "{:.2%}"}).map(color_rsi_category, subset=["RSI Category"]).map(color_trend_class, subset=["Trend"]), hide_index=True, width="stretch")
         
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Portfolio Allocation by Value</h3>", unsafe_allow_html=True)
         if valid_tickers:
             labels = [f"{t} ({share_values[t]:,.0f} ₹)" for t in valid_tickers]
             vals = [weights[t] * 100 for t in valid_tickers]
-            fig = pie_chart(labels, vals, title="Portfolio Allocation by Value")
+            fig = pie_chart(labels, vals, title=None)
             st.plotly_chart(fig, width="stretch")
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
+        st.markdown("<h3 style=color:#7161ef;'>Unrealized P/L Trend</h3>", unsafe_allow_html=True)
         try:
             view_mode = st.segmented_control("Unrealized P/L View", ["Portfolio-Level", "Individual Stock"], default="Portfolio-Level")
             pnl_df = portfolio_unrealized_pnl(price_df[valid_tickers] if not price_df.empty else pd.DataFrame(), shares, buy_price, buy_date_actual)
@@ -103,7 +104,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
                     pnl_df = pnl_df.dropna()
                     if not pnl_df.empty:
                         pnl_df_reset = pnl_df.reset_index().rename(columns={"index": "Date"})
-                        fig_pnl = line_chart(pnl_df_reset, x="Date", y="Unrealized_PnL", title="Unrealized P/L Trend", labels={"Unrealized_PnL": "Unrealized P/L (₹)"})
+                        fig_pnl = line_chart(pnl_df_reset, x="Date", y="Unrealized_PnL", title=None, labels={"Unrealized_PnL": "Unrealized P/L (₹)"})
                         st.plotly_chart(fig_pnl, width="stretch")
                     else:
                         st.info("Not enough data to compute Unrealized P/L.")
@@ -126,7 +127,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
                     fig_stock_lines = line_chart(per_stock_reset,
                                                  x="Date",
                                                  y=list(per_stock_lines.columns),
-                                                 title="Unrealized P/L by Stock")
+                                                 title=None)
                     fig_stock_lines.update_yaxes(title_text="Unrealized P/L (₹)")
                     st.plotly_chart(fig_stock_lines, width="stretch")
                 else:
@@ -136,6 +137,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             st.warning(f"Unrealized P/L error: {e}")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Historical Price Trend</h3>", unsafe_allow_html=True)
         combined = []
         for t in valid_tickers:
             ser = price_df[t].loc[price_df[t].index >= date_ranges[t][0]]
@@ -153,7 +155,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
                                       color="Ticker",
                                       markers=False,
                                       labels={"Close Price (₹)": "Price (₹)", "Date": "Date"},
-                                      title="Price Trend – Historical")
+                                      title=None)
 
             elif view_mode == "Indexed Performance (Base 100)":
                 df_hist["Indexed"] = (df_hist["Close Price (₹)"] / df_hist.groupby("Ticker")["Close Price (₹)"].transform("first")) * 100
@@ -164,7 +166,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
                                       color="Ticker",
                                       markers=False,
                                       labels={"Indexed": "Performance (Base 100)", "Date": "Date"},
-                                      title="Indexed Performance (Base 100 = Start Value)")
+                                      title=None)
             st.plotly_chart(fig_hist, width="stretch")
         else:
             st.info("No historical data to plot for the selected date ranges.")

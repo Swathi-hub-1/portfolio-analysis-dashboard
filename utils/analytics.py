@@ -14,54 +14,52 @@ def portfolio_value_from_prices(price_df: pd.DataFrame, shares: dict) -> pd.Seri
     return pf.dropna()
 
 
-def compute_portfolio_metrics(
-        portfolio_value: pd.Series,
-        buy_price: dict = None,
-        latest_price: dict = None,
-        shares: dict = None,
-        buy_date_actual: dict = None,
-        risk_free_rate: float = 0.068):
+def compute_portfolio_metrics(portfolio_value: pd.Series,
+                              buy_price: dict = None,
+                              latest_price: dict = None,
+                              shares: dict = None,
+                              buy_date_actual: dict = None,
+                              risk_free_rate: float = 0.0655):
 
     metrics = {}
 
     if portfolio_value.empty or len(portfolio_value) < 2:
         metrics.update({"cumulative_return": 0.0,
-                        "investor_cagr": 0.0,
                         "volatility": 0.0,
                         "cagr": 0.0,
                         "sharpe": np.nan,
                         "sortino": np.nan,
                         "max_dd": np.nan,
                         "returns": pd.Series(dtype=float)})
-        return metrics
-
+   
     returns = portfolio_value.pct_change().dropna()
     metrics["returns"] = returns
     metrics["volatility"] = returns.std() * np.sqrt(252)
-    metrics["cagr"] = qs.stats.cagr(returns)
+    start_val = portfolio_value.iloc[0]
+    end_val = portfolio_value.iloc[-1]
+    years = (portfolio_value.index[-1] - portfolio_value.index[0]).days / 365.25
+
+    metrics["cagr"] = (end_val / start_val) ** (1 / years) - 1
+
     try:
         daily_rf = risk_free_rate / 252
-        ann_return = (1 + returns.mean())**252 - 1
-        ann_vol = returns.std() * np.sqrt(252)
+        excess = returns - daily_rf
+        ann_return = (1 + returns).prod() ** (252 / len(returns)) - 1
 
-        if ann_vol == 0:
-            metrics["sharpe"] = np.nan
-        else:
-            metrics["sharpe"] = (ann_return - risk_free_rate) / ann_vol
-
+        metrics["sharpe"] = (excess.mean() / excess.std()) * np.sqrt(252)
     except Exception:
         metrics["sharpe"] = np.nan
-    try:
-        downside = returns[returns < daily_rf]
 
+    try:
+        downside = returns[returns < 0]
         if downside.empty:
             metrics["sortino"] = np.nan
         else:
             downside_vol = downside.std() * np.sqrt(252)
-            metrics["sortino"] = (ann_return - risk_free_rate) / downside_vol
-
+            metrics["sortino"] = (metrics["cagr"] - risk_free_rate) / downside_vol
     except Exception:
         metrics["sortino"] = np.nan
+
     try:
         roll_max = portfolio_value.cummax()
         drawdown = (portfolio_value - roll_max) / roll_max
@@ -78,15 +76,15 @@ def compute_portfolio_metrics(
             bp = buy_price.get(t)
             lp = latest_price.get(t)
             sh = shares.get(t, 0)
-            bdt = buy_date_actual.get(t)
+            bd = buy_date_actual.get(t)
 
             if bp not in (None, 0) and lp not in (None, 0) and sh > 0:
                 total_invested += bp * sh
                 total_current += lp * sh
 
-                if bdt is not None:
-                    if latest_buy_date is None or bdt > latest_buy_date:
-                        latest_buy_date = bdt
+                if bd is not None:
+                    if latest_buy_date is None or bd > latest_buy_date:
+                        latest_buy_date = bd
 
         if total_invested > 0:
             investor_cum_return = (total_current / total_invested) - 1
@@ -94,19 +92,6 @@ def compute_portfolio_metrics(
             investor_cum_return = 0.0
 
         metrics["cumulative_return"] = investor_cum_return
-
-        if latest_buy_date:
-            days = (pd.Timestamp.today() - latest_buy_date).days
-            years = days / 365.0
-
-            if years > 0:
-                investor_cagr = (total_current / total_invested) ** (1 / years) - 1
-            else:
-                investor_cagr = 0.0
-        else:
-            investor_cagr = 0.0
-
-        metrics["cagr"] = investor_cagr
 
     return metrics
 
@@ -353,16 +338,16 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         stock_rtn = combined.iloc[:, 0]
         mkt_rtn = combined.iloc[:, 1]
 
-        vol = stock_rtn.std() * np.sqrt(252)
-        cov = np.cov(stock_rtn, mkt_rtn)[0][1]
-        var_pf = np.var(mkt_rtn)
+        vol = stock_rtn.std(ddof=0) * np.sqrt(252)
+        cov = np.cov(stock_rtn, mkt_rtn, ddof=0)[0, 1]
+        var_pf = np.var(mkt_rtn, ddof=0)
         beta = cov / var_pf if var_pf != 0 else np.nan
         cumulative = (1 + stock_rtn).cumprod()
         rolling_max = cumulative.cummax()
         drawdown = (cumulative - rolling_max) / rolling_max
         max_dd = drawdown.min()
-        var_95 = np.percentile(stock_rtn, 5)
-        cvar_95 = stock_rtn[stock_rtn <= var_95].mean() if not ser.empty else np.nan
+        var_95 = -np.percentile(stock_rtn, 5)
+        cvar_95 = -stock_rtn[stock_rtn <= var_95].mean() if not ser.empty else np.nan
 
         records.append({"Ticker": t,
                         "Volatility (Annualized)": vol,
@@ -377,7 +362,7 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
     return df
 
 
-def compute_rolling_metrics(returns: pd.Series, window: int = 60, risk_free_rate: float = 0.068):
+def compute_rolling_metrics(returns: pd.Series, window: int = 60, risk_free_rate: float = 0.0655):
     daily_rf = risk_free_rate / 252
     excess = returns - daily_rf
     rolling_mean = excess.rolling(window).mean()

@@ -4,8 +4,8 @@ import os
 import io
 
 def report(pf_summary_table, fundamentals_df, div_df, pf_returns):
-        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Export Portfolio Reports</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center; color:#90e0ef;'>Download detailed portfolio analytics in Excel or QuantStats report formats.</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#7161ef;'>Export Portfolio Reports</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; color:#0096c7;'>Download detailed portfolio analytics in Excel or QuantStats report formats.</p>", unsafe_allow_html=True)
 
         try:
             buffer = io.BytesIO()

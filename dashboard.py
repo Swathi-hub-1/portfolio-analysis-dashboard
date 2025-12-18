@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 import plotly.express as px
 
-from utils.data_fetch import load_tickers, fetch_all_data 
+from utils.data_fetch import load_tickers, fetch_all_data, fetch_fundamentals 
 from utils.analytics import portfolio_value_from_prices, compute_portfolio_metrics, safe_float, compute_position_health, compute_stock_risk_metrics, portfolio_unrealized_pnl, compute_rolling_metrics
 from utils.charts import pie_chart, line_chart, area_chart, box_chart, scatter_plot, heatmap_chart, bubble_chart, dual_axis_line_chart
 from utils.ui import apply_custom_css, header, sidebar_config, home_page, color_gain_loss, color_rsi_category, color_trend_class
@@ -45,7 +45,6 @@ st.session_state.selected_tickers = portfolio
 
 if not portfolio:
     home_page()
-    # st.info("👈 Select at least one ticker to begin.")
     st.stop()
 
 shares = {}
@@ -60,6 +59,10 @@ if st.sidebar.button("🚀 Generate Analysis"):
     st.session_state.generated = True
     st.session_state.loaded_data = None
 
+if not st.session_state.generated:
+    home_page()
+    st.stop()
+
 if st.session_state.generated:
     with st.spinner("Fetching & preparing data..."):
         data_bundle = fetch_all_data(portfolio, date_ranges)
@@ -67,7 +70,6 @@ if st.session_state.generated:
 
     price_df = st.session_state.loaded_data["price_df"]
     price_dict = st.session_state.loaded_data["price_dict"]
-    info_dict = st.session_state.loaded_data["info_dict"]
     div_dict = st.session_state.loaded_data["div_dict"]
     buy_price = st.session_state.loaded_data["buy_price"]
     buy_date_actual = st.session_state.loaded_data["buy_date_actual"]
@@ -110,7 +112,7 @@ if st.session_state.generated:
                 col.metric(label, value, delta)
 
     with tabs[0]:
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Portfolio Overview</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Portfolio Overview</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         metric_row([
             ("Best Performer", best_stock or "–", f"{gain_pct.get(best_stock, 0):.2%}" if best_stock else None),
@@ -289,7 +291,7 @@ if st.session_state.generated:
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
     with tabs[1]:
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Risk Analysis</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Risk Analysis</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         metric_row([
             ("Annualized Volatility", f"{metrics['volatility']:.2%}", None),
@@ -382,22 +384,74 @@ if st.session_state.generated:
     with tabs[2]:
         st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Fundamentals Insight</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+
+        def get_first_available(df, possible_labels):
+            if df is None or df.empty:
+                return None
+
+            for label in possible_labels:
+                if label in df.index:
+                    try:
+                        return float(df.loc[label].iloc[0])
+                    except Exception:
+                        return None
+            return None
+
+
+        def format_market_cap(value):
+            if value is None:
+                return "N/A"
+            units = [("T", 1e12), ("B", 1e9), ("M", 1e6), ("K", 1e3)]
+            for suffix, factor in units:
+                if value >= factor:
+                    return f"₹{round(value / factor, 2)} {suffix}"
+            return str(value)
+        
         rows = []
         for t in valid_tickers:
-            info = info_dict.get(t, {}) or {}
+            fs = fetch_fundamentals(t)
+            if not fs:
+                continue
+             
+            income = fs.get("income")
+            balance = fs.get("balance")
+            share_outstanding = fs.get("s_o")
+            price = latest_price.get(t)
+
+            net_income = get_first_available(income,["Net Income",   
+                                                     "Net Income Common Stockholders",
+                                                     "Net Income Applicable To Common Shares"])
+
+            revenue = get_first_available(income,["Total Revenue",
+                                                  "Operating Revenue"])
+
+            equity = get_first_available(balance,["Total Stockholder Equity",
+                                                  "Stockholders Equity",
+                                                  "Total Equity",
+                                                  "Total Equity Gross Minority Interest"])
             
-            rows.append({
-                "Symbol": t,
-                "Company": info.get("longName"),
-                "Sector": info.get("sector"),
-                "Market Cap (₹T)": round(info.get("marketCap", 0) / 1e12, 3,) if info.get("marketCap") else None,
-                "P/E Ratio": info.get("trailingPE"),
-                "Forward P/E": info.get("forwardPE"),
-                "P/B Ratio": info.get("priceToBook"),
-                "EPS (TTM)": info.get("trailingEps"),
-                "ROE (%)": round(info.get("returnOnEquity", 0) * 100, 2) if info.get("returnOnEquity") else None,
-                "Profit Margin (%)": round(info.get('profitMargins', 0) * 100, 2) if info.get('profitMargins') else None,
-            })
+            if any(v is None for v in [net_income, revenue, equity, share_outstanding, price]):
+                continue
+
+            eps = net_income / share_outstanding if share_outstanding else None
+            pe = price / eps if eps and eps !=0 else None
+
+            book_value_per_share = equity / share_outstanding
+            pb = price / book_value_per_share if book_value_per_share else None
+
+            roe = net_income / equity
+            profit_margin = net_income / revenue
+
+            market_cap = price * share_outstanding
+
+            rows.append({"Symbol": t,
+                        "Market Cap Display": format_market_cap(market_cap),
+                        "Market Cap": market_cap,
+                        "EPS (TTM)": round(eps, 2),
+                        "P/E Ratio": round(pe, 2) if pe else None,
+                        "P/B Ratio": round(pb, 2) if pb else None,
+                        "ROE (%)": round(roe * 100, 2),
+                        "Profit Margin (%)": round(profit_margin * 100, 2)})
         fundamentals_df = pd.DataFrame(rows)
 
         if not fundamentals_df.empty:
@@ -415,19 +469,20 @@ if st.session_state.generated:
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
         st.subheader("Fundamental Health")
-        st.dataframe(fundamentals_df, hide_index=True, width="stretch")
-        st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+        display_df = fundamentals_df.drop(columns=["Market Cap"])
+        display_df = display_df.rename(columns={"Market Cap Display": "Market Cap"})
 
-        quality_df = fundamentals_df.dropna(subset=["ROE (%)", "Profit Margin (%)", "Market Cap (₹T)", "Sector"])
+        st.dataframe(display_df, hide_index=True, width="stretch")        
+        quality_df = fundamentals_df.dropna(subset=["ROE (%)", "Profit Margin (%)", "Market Cap", "Quality Bucket"])
 
         if not quality_df.empty:
-            quality_df = quality_df.rename(columns={"Market Cap (₹T)": "Market Cap"})
+            quality_df = quality_df.rename(columns={"Market Cap": "Market Cap"})
             fig_quality = bubble_chart(
                 quality_df,
                 x="ROE (%)",
                 y="Profit Margin (%)",
                 size="Market Cap",
-                color="Sector",
+                color="Quality Bucket",
                 hover="Symbol",
                 title="Quality Map (ROE vs Profit Margin)"
             )
@@ -458,7 +513,7 @@ if st.session_state.generated:
 
 
     with tabs[3]:
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Dividends & Income</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Dividends & Income</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         div_rows = []
         total_portfolio_dividend = 0
@@ -538,7 +593,6 @@ if st.session_state.generated:
                 "Div Yield (%)": round(current_yield, 2),
                 "Projected Div (₹)": round(projected_annual_income, 2),
                 "Dividend CAGR (%)": round(div_cagr, 2) if div_cagr else None,
-                # "Estimated Shares if Reinvested": round(est_reinvested_shares, 2),
             })
         div_df = pd.DataFrame(div_rows)
 
@@ -592,8 +646,8 @@ if st.session_state.generated:
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
     with tabs[4]:
-        st.markdown("<h2 style='text-align:center; color:#a2d2ff;'>Export Reports & Insights</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center; color:#90e0ef;'>Export your portfolio analytics as an Excel summary or QuantStats report.</p>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Export Reports & Insights</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; color:#0096c7;'>Export your portfolio analytics as an Excel summary or QuantStats report.</p>", unsafe_allow_html=True)
 
         try:
             buffer = io.BytesIO()

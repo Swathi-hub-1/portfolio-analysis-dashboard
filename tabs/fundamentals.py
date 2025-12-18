@@ -36,7 +36,7 @@ def format_market_cap(value):
 
 
 def fundamental_insights(valid_tickers, latest_price):
-        st.markdown("<h2 style='text-align:center; color:#0096c7;'>Fundamental Strength & Valuation</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:center; color:#7161ef;'>Fundamental Strength & Valuation</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         rows = []
@@ -100,14 +100,14 @@ def fundamental_insights(valid_tickers, latest_price):
             
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
-        st.subheader("Company Fundamentals")
+        st.markdown("<h3 style=color:#7161ef;'>Company Fundamentals</h3>", unsafe_allow_html=True)
         display_df = fundamentals_df.drop(columns=["Market Cap"])
         display_df = display_df.rename(columns={"Market Cap Display": "Market Cap"})
 
         st.dataframe(display_df, hide_index=True, width="stretch")
-        # st.dataframe(fundamentals_df, hide_index=True, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Quality Positioning (ROE vs Profit Margin)</h3>", unsafe_allow_html=True)
         fundamentals_df["Quality Bucket"] = pd.cut(fundamentals_df["ROE (%)"],
                                                    bins=[-float("inf"), 10, 20, float("inf")],
                                                    labels=["Low ROE", "Moderate ROE", "High ROE"])
@@ -122,13 +122,14 @@ def fundamental_insights(valid_tickers, latest_price):
                                        size="Market Cap",
                                        color="Quality Bucket",
                                        hover="Symbol",
-                                      title="Quality Positioning (ROE vs Profit Margin)")
+                                      title=None)
             
             st.plotly_chart(fig_quality, width="stretch")
         else:
             st.info("Insufficient fundamental data to show quality bubble map.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+        st.markdown("<h3 style=color:#7161ef;'>Valuation Distribution (P/E & P/B)</h3>", unsafe_allow_html=True)
         val_box_df = fundamentals_df[["Symbol", "P/E Ratio", "P/B Ratio"]].dropna()
         if not val_box_df.empty:
             melted = val_box_df.melt(id_vars="Symbol",
@@ -140,6 +141,6 @@ def fundamental_insights(valid_tickers, latest_price):
                             x_col="Metric",
                             y_col="Value",
                             hover_label_col="Symbol",
-                            title="Valuation Distribution (P/E & P/B)")
+                            title=None)
             st.plotly_chart(fig, width="stretch")
         return fundamentals_df

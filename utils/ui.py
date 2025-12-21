@@ -78,16 +78,6 @@ def sidebar_config():
 
 def home_page():
     st.markdown(f"""
-                <div style='text-align:center; padding:35px 0 10px 0;'>
-                    <h3 style='color:{ACCENT_2}; font-size:24px; font-weight:700; margin-bottom:5px'>
-                        Your Personal Portfolio Insights Dashboard
-                    </h3>
-                    <h6 style='color:{ACCENT_2}; font-size:14px; margin:0 auto; margin-top:10px;'>
-                         Understand your investments with clarity — performance, risk, valuation, and income analytics in one place.
-                    </h6>
-                </div>""", unsafe_allow_html=True)
-    
-    st.markdown(f"""
                 <div style='background:rgba(149,127,239,0.1); border:1px solid rgba(149,127,239,0.3); border-radius:12px; padding:25px 30px; margin-top:40px;'>
                     <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px'>
                         About This Dashboard
@@ -132,6 +122,16 @@ def home_page():
                     <br>
                     Built for learning, research, and informed investing.
                 </div>""", unsafe_allow_html=True)
+    
+
+def interpretation_box(title, points):
+    st.markdown(f"""
+        <div style="background: rgba(0,150,199,0.06); border: 1px solid rgba(0,150,199,0.35); border-radius: 14px; padding: 18px 22px; margin-top: 25px;">
+            <h4 style="color:#0096c7; margin-bottom:10px;">{title}</h4>
+            <ul style="line-height:1.7; font-size:15px;">
+                {''.join([f'<li>{p}</li>' for p in points])}
+            </ul>
+        </div>""",unsafe_allow_html=True)
     
    
 def color_rsi_category(cat):

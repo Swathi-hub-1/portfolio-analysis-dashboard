@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from utils.analytics import compute_position_health, portfolio_unrealized_pnl, safe_float
 from utils.charts import pie_chart, line_chart
-from utils.ui import color_rsi_category, color_gain_loss, color_trend_class 
+from utils.ui import color_rsi_category, color_gain_loss, color_trend_class, interpretation_box 
 
 
 def metric_row(items):

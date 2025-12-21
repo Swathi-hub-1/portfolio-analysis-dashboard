@@ -70,7 +70,8 @@ if st.session_state.generated:
     div_dict = st.session_state.loaded_data["div_dict"]
     buy_price = st.session_state.loaded_data["buy_price"]
     buy_date_actual = st.session_state.loaded_data["buy_date_actual"]
-    latest_price = st.session_state.loaded_data["latest_price"]
+    latest_price = data_bundle["latest_price"]
+    market_df = st.session_state.loaded_data["market_df"]
     missing = st.session_state.loaded_data["missing"]
 
     if missing:

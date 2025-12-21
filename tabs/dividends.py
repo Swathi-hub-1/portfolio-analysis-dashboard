@@ -1,13 +1,28 @@
 import streamlit as st
 import pandas as pd
+from utils.analytics import safe_float
 from utils.charts import line_chart, pie_chart, bar_chart
+from utils.ui import interpretation_box
+
+def metric_row(items):
+        cols = st.columns(len(items))
+        for col, (label, value, delta) in zip(cols, items):
+            if delta is None:
+                col.metric(label, value)
+            else:
+                col.metric(label, value, delta)
+
 
 def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_price, shares):
         st.markdown("<h2 style='text-align:center; color:#7161ef;'>Dividend Income & Yield Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         div_rows = []
-        total_portfolio_dividend = 0
+        share_values = {t: safe_float(latest_price.get(t)) * float(shares.get(t, 0)) for t in valid_tickers}
+        total_value = float(sum(share_values.values())) if share_values else 0.0
+        pf_income = 0
+        total_projected_annual_income = 0
+        
 
         for t in valid_tickers:
             divs = div_dict.get(t)
@@ -56,7 +71,8 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
 
             if not divs.empty:
                 try:
-                    annual_div = divs.resample("YE").sum()
+                    divs_cagr = divs.loc[divs.index >= start_dt]
+                    annual_div = divs_cagr.resample("YE").sum()
                     if len(annual_div) > 1 and annual_div.iloc[0] > 0:
                         periods = len(annual_div) - 1
                         div_cagr = ((annual_div.iloc[-1] / annual_div.iloc[0]) ** (1 / periods) - 1) * 100
@@ -66,32 +82,44 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                     div_cagr = None
             else:
                 div_cagr = None
-
+            
             buy_p = buy_price.get(t) or 0.0
             yoc = (last_year_div / buy_p) * 100 if buy_p else 0.0
-            current_yield = (last_year_div / latest_price.get(t)) * 100 if latest_price.get(t) else 0.0
-            total_income = float(div_since_buy) * float(shares.get(t, 0))
+            stk_income = float(div_since_buy) * float(shares.get(t, 0))
+            pf_income += stk_income
             projected_annual_income = last_year_div * shares.get(t, 0)
-            total_portfolio_dividend += projected_annual_income
+            total_projected_annual_income += projected_annual_income
+            forward_portfolio_yield = (total_projected_annual_income / total_value) if total_value else 0.0
+            current_yield = (last_year_div / latest_price.get(t)) * 100 if latest_price.get(t) else 0.0
+            actual_current_yield = (pf_income / total_value) if total_value else 0.0
+            
+            dividend_payers = sum(1 for t in valid_tickers if not div_dict.get(t).empty)
+            coverage = f"{dividend_payers} / {len(valid_tickers)}"
 
             div_rows.append({"Ticker": t,
                              "Shares": shares.get(t, 0),
                              "Ex-Date": last_ex_dividend.strftime("%b %d, %Y") if last_ex_dividend else "-",
                              "Last 12M Div (₹)": float(last_year_div),
-                             "Total Dividend Since Buy (₹)": round(total_income, 2),
+                             "Dividend Income(₹)": round(stk_income, 2),
                              "YOC (%)": round(yoc, 2),
-                             "Div Yield (%)": round(current_yield, 2),
+                             "Current Yield (%)": round(current_yield, 2),
                              "Projected Div (₹)": round(projected_annual_income, 2),
                              "Dividend CAGR (%)": round(div_cagr, 2) if div_cagr else None,})
         div_df = pd.DataFrame(div_rows)
+
+        metric_row([("Total Dividend Income", f"₹{pf_income:,.2f}", None),
+                    ("Portfolio Yield", f"{actual_current_yield:.2%}", None),
+                    ("Forward Portfolio Yield", f"{forward_portfolio_yield:.2%}", None),
+                    ("Dividend Coverage", f"{coverage}", None)])
+        st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         st.markdown("<h3 style=color:#7161ef;'>Dividend Income Summary</h3>", unsafe_allow_html=True)
         st.dataframe(div_df, hide_index=True, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         st.markdown("<h3 style=color:#7161ef;'>Dividend Contribution by Stock</h3>", unsafe_allow_html=True)
-        if not div_df.empty and div_df["Total Dividend Since Buy (₹)"].sum() > 0:
-            fig_income = pie_chart(div_df["Ticker"].tolist(), div_df["Total Dividend Since Buy (₹)"].tolist(), title=None)
+        if not div_df.empty and div_df["Dividend Income(₹)"].sum() > 0:
+            fig_income = pie_chart(div_df["Ticker"].tolist(), div_df["Dividend Income(₹)"].tolist(), title=None)
             st.plotly_chart(fig_income, width="stretch")
         else:
             st.info("No dividend income to visualize for the selected holdings/date ranges.")
@@ -129,4 +157,6 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                             title=None)
         fig_bar.update_traces(texttemplate="%{text:.2f}%", textposition="outside")
         st.plotly_chart(fig_bar, width="stretch")
+        st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+        
         return div_df

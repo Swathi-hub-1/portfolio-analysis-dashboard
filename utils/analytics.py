@@ -44,7 +44,6 @@ def compute_portfolio_metrics(portfolio_value: pd.Series,
     try:
         daily_rf = risk_free_rate / 252
         excess = returns - daily_rf
-        ann_return = (1 + returns).prod() ** (252 / len(returns)) - 1
 
         metrics["sharpe"] = (excess.mean() / excess.std()) * np.sqrt(252)
     except Exception:
@@ -371,4 +370,6 @@ def compute_rolling_metrics(returns: pd.Series, window: int = 60, risk_free_rate
     rolling_vol = roll_std * np.sqrt(252)
     rolling_sharpe = ((rolling_mean * 252) / (roll_std* np.sqrt(252)))
     return rolling_vol, rolling_sharpe
+
+
 

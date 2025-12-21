@@ -1,6 +1,5 @@
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
 import numpy as np
 
 
@@ -22,22 +21,34 @@ def line_chart(df, x, y, color=None, title=None, labels=None, markers=None):
     return fig
 
 
-def area_chart(x, y, title=None):
-    fig = px.area(x=x, y=y, template=COMMON_TEMPLATE, labels={"x": "Date", "y": "Drawdown"}, color_discrete_sequence=PALETTE)
+def area_chart(x, y, title=None, underwater=False):
+    fig = px.area(x=x, y=y, template=COMMON_TEMPLATE, labels={"x": "Date", "y": "Drawdown %"}, color_discrete_sequence=PALETTE)
+    fig.update_traces(line=dict(width=2))
     fig.update_layout(title=title or "", margin=dict(t=60, b=60))
-    fig.update_yaxes(tickformat='%.0%')
+    fig.update_yaxes( range=[min(y), 0], tickformat=".0%")
     return fig
 
 
-def scatter_plot(df, x, y, color=None, size=None, title=None, hover=None, trendline=None):
+def scatter_plot(df, x, y, color=None, size=None, title=None, hover=None, trendline=None, reference_line=False):
     fig = px.scatter(df, x=x, y=y, hover_name=hover, color=color, size=size, template=COMMON_TEMPLATE, title=title or "", trendline=trendline, color_discrete_sequence=PALETTE,)
-    fig.update_traces(mode="markers", marker=dict(size=12, opacity=0.85))
-    fig.update_layout(margin=dict(t=60, b=60))
+    fig.update_traces(mode="markers", marker=dict(size=12, opacity=0.85, line=dict(width=0.5, color="#ffffff")))
+    fig.update_layout(margin=dict(t=60, b=60), showlegend=False)
+    if reference_line:
+        x_mean = df[x].mean()
+        y_mean = df[y].mean()
+        fig.add_vline(x=x_mean, line_dash="dash", line_width=1, line_color="#94a3b8")
+        fig.add_hline(y=y_mean, line_dash="dash", line_width=1, line_color="#94a3b8")
+    fig.update_traces(hovertemplate=("<b>%{hovertext}</b><br>"
+                                     "Volatility: %{x:.2%}<br>"
+                                     "Return: %{y:.2%}"
+                                     "<extra></extra>"))
     return fig
 
 
 def heatmap_chart(df, title=None):
-    fig = px.imshow(df, text_auto=True, color_continuous_scale=CONTINUOUS_SCALE, template=COMMON_TEMPLATE, title=title or "")
+    fig = px.imshow(df, text_auto=".2f", color_continuous_scale=CONTINUOUS_SCALE, template=COMMON_TEMPLATE, title=title or "")
+    fig.update_traces(hovertemplate=("<b>%{x}</b> vs <b>%{y}</b><br>"
+                                     "Correlation: <b>%{z:.4f}</b><extra></extra>"))
     fig.update_layout(margin=dict(t=60, b=60))
     return fig
 
@@ -45,7 +56,7 @@ def heatmap_chart(df, title=None):
 def dual_axis_line_chart(df, x, y1, y2, y1_name="Series 1", y2_name="Series 2", title=None):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df[x], y=df[y1], mode="lines", name=y1_name, line=dict(width=2, color=PALETTE[0]),))
-    fig.add_trace(go.Scatter(x=df[x], y=df[y2], mode="lines", name=y2_name, yaxis="y2", line=dict(width=2, dash="dot", color=PALETTE[2]),))
+    fig.add_trace(go.Scatter(x=df[x], y=df[y2], mode="lines", name=y2_name, yaxis="y2", line=dict(width=2, color=PALETTE[2]),))
     fig.update_layout(title=title or "", template=COMMON_TEMPLATE, xaxis=dict(title=x), yaxis=dict(title=y1_name), yaxis2=dict(title=y2_name, overlaying="y", side="right"), legend=dict(orientation="h", y=-0.2), margin=dict(t=60, b=60),)
     return fig
 

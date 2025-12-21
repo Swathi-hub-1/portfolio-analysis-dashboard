@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from utils.charts import bubble_chart, box_chart
 from utils.data_fetch import fetch_fundamentals
+from utils.ui import interpretation_box
 
 def metric_row(items):
         cols = st.columns(len(items))
@@ -143,4 +144,6 @@ def fundamental_insights(valid_tickers, latest_price):
                             hover_label_col="Symbol",
                             title=None)
             st.plotly_chart(fig, width="stretch")
+            st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+
         return fundamentals_df

@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from utils.analytics import compute_stock_risk_metrics, compute_rolling_metrics
 from utils.charts import area_chart, scatter_plot, heatmap_chart, dual_axis_line_chart
-from utils.ui import beta_color
+from utils.ui import beta_color, interpretation_box
 
 def metric_row(items):
         cols = st.columns(len(items))
@@ -64,7 +65,8 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                   color=None,          
                                   hover="Ticker",
                                   trendline=None,      
-                                  title="")
+                                  title="",
+                                  reference_line=True)
             st.plotly_chart(fig_rr, width="stretch")
         else:
             st.info("Not enough data for Risk/Return scatter plot.")
@@ -93,3 +95,4 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                            y2_name="Rolling Sharpe Ratio",
                                            title="")
         st.plotly_chart(fig_rolling, width="stretch")
+        st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)

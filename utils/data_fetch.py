@@ -39,7 +39,7 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
         return df
     except Exception:
         return pd.DataFrame(columns=["High", "Low", "Close"])
-
+    
 
 @st.cache_data(show_spinner=False)
 def fetch_fundamentals(ticker: str) -> dict:

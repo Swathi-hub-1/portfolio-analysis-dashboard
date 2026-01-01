@@ -63,6 +63,9 @@ def fundamental_insights(valid_tickers, latest_price):
                                                   "Total Equity",
                                                   "Total Equity Gross Minority Interest"])
             
+            total_debt = get_first_available(balance,["Total Debt",
+                                                      "Long Term Debt"])
+            
             if any(v is None for v in [net_income, revenue, equity, share_outstanding, price]):
                 continue
 
@@ -74,17 +77,20 @@ def fundamental_insights(valid_tickers, latest_price):
 
             roe = net_income / equity
             profit_margin = net_income / revenue
+            debt_equity = total_debt / equity if total_debt else 0
 
             market_cap = price * share_outstanding
 
             rows.append({"Symbol": t,
                         "Market Cap Display": format_market_cap(market_cap),
                         "Market Cap": market_cap,
+                        "ROE (%)": round(roe * 100, 2),
+                        "Profit Margin (%)": round(profit_margin * 100, 2),
+                        "Debt / Equity": round(debt_equity, 2),
                         "EPS (TTM)": round(eps, 2),
                         "P/E Ratio": round(pe, 2) if pe else None,
-                        "P/B Ratio": round(pb, 2) if pb else None,
-                        "ROE (%)": round(roe * 100, 2),
-                        "Profit Margin (%)": round(profit_margin * 100, 2)})
+                        "P/B Ratio": round(pb, 2) if pb else None,})
+                        
        
         fundamentals_df = pd.DataFrame(rows)
 
@@ -93,11 +99,13 @@ def fundamental_insights(valid_tickers, latest_price):
             avg_margin = fundamentals_df["Profit Margin (%)"].dropna().mean()
             median_pe = fundamentals_df["P/E Ratio"].dropna().median()
             median_pb = fundamentals_df["P/B Ratio"].dropna().median()
+            avg_de = fundamentals_df["Debt / Equity"].dropna().mean()
 
             metric_row([("Avg ROE (%)", f"{avg_roe:.2f}%", None),
                         ("Avg Profit Margin (%)", f"{avg_margin:.2f}%", None),
                         ("Median P/E", f"{median_pe:.2f}", None),
-                        ("Median P/B", f"{median_pb:.2f}", None),])
+                        ("Median P/B", f"{median_pb:.2f}", None),
+                        ("Avg Debt/Equity", f"{avg_de:.2f}", None),])
             
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
@@ -146,4 +154,19 @@ def fundamental_insights(valid_tickers, latest_price):
             st.plotly_chart(fig, width="stretch")
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
+            quality_label = "strong" if avg_roe > 15 else "moderate"
+            valuation_label = "expensive" if median_pe > 25 else "reasonable"
+
+            if median_pe < 15:
+                style_label = "value"
+            elif median_pe > 30:
+                style_label = "growth/quality"
+            else:
+                style_label = "blend"
+
+            summary =[f"On average, the portfolio companies generate an ROE of {avg_roe:.2f}% with healthy profit margins of {avg_margin:.2f}%, indicating {quality_label} business quality.", 
+                      
+                      f"Valuation multiples remain {valuation_label}, with a median P/E of {median_pe:.2f}, suggesting the portfolio is tilted toward {style_label} stocks."]
+            
+            interpretation_box("Fundamental Strength Summary", summary)
         return fundamentals_df

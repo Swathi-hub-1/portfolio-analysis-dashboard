@@ -159,4 +159,26 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
         st.plotly_chart(fig_bar, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
+        if not div_df.empty:
+            avg_cagr = div_df["Dividend CAGR (%)"].dropna().mean() if not div_df["Dividend CAGR (%)"].isna().all() else 0
+            if avg_cagr > 10:
+                trend_label = "rapidly growing"
+            elif avg_cagr > 2:
+                trend_label = "stable and growing"
+            else:
+                trend_label = "uneven or stagnant"
+
+            yield_pct = actual_current_yield * 100
+            if yield_pct > 4:
+                orientation_label = "income-oriented"
+            elif yield_pct > 1.5:
+                orientation_label = "blended"
+            else:
+                orientation_label = "growth-focused"
+
+        summary = [f"The portfolio generates an estimated annual dividend income of ₹{total_projected_annual_income:,.2f}, making it -low/moderate/strong- from an income perspective. with a current portfolio yield of {actual_current_yield:.2%}.",
+                   
+                   f"Dividend growth trends indicate {trend_label} income, suggesting the portfolio is {orientation_label} and prioritizes {'yield' if orientation_label == 'income-oriented' else 'total return'}."]
+        
+        interpretation_box("Income Summary", summary)
         return div_df

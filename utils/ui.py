@@ -126,10 +126,10 @@ def home_page():
 
 def interpretation_box(title, points):
     st.markdown(f"""
-        <div style="background: rgba(0,150,199,0.06); border: 1px solid rgba(0,150,199,0.35); border-radius: 14px; padding: 18px 22px; margin-top: 25px;">
-            <h4 style="color:#0096c7; margin-bottom:10px;">{title}</h4>
-            <ul style="line-height:1.7; font-size:15px;">
-                {''.join([f'<li>{p}</li>' for p in points])}
+        <div style="background: rgba(149,127,239,0.1); border: 1px solid rgba(149,127,239,0.3); border-radius: 14px; padding: 20px 24px; margin-top: 25px;">
+            <h4 style="color:{ACCENT_2}; margin-bottom:12px;">{title}</h4>
+            <ul style="line-height:1.75; font-size:15px; padding-left: 18px; margin: 0;">
+                {''.join([f'<li style="margin-bottom: 10px;">{p}</li>' for p in points])}
             </ul>
         </div>""",unsafe_allow_html=True)
     

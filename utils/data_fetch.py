@@ -1,8 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
-import requests
-import os
+from yahooquery import Ticker as yqt
 from dotenv import load_dotenv
 from typing import Tuple, Dict
 
@@ -41,6 +40,22 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
         return pd.DataFrame(columns=["High", "Low", "Close"])
     
 
+@st.cache_data(show_spinner=False)
+def fetch_sector_industry(ticker: str) -> dict:
+    try:
+        t = yqt(ticker)
+        profile = t.asset_profile
+
+        if isinstance(profile, dict) and ticker in profile:
+            data = profile[ticker]
+            return {"Sector": data.get("sector"),
+                    "Industry": data.get("industry")}
+        return {"Sector": None, "Industry": None}
+
+    except Exception:
+        return {"Sector": None, "Industry": None}
+
+    
 @st.cache_data(show_spinner=False)
 def fetch_fundamentals(ticker: str) -> dict:
     try:

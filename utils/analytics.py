@@ -14,12 +14,7 @@ def portfolio_value_from_prices(price_df: pd.DataFrame, shares: dict) -> pd.Seri
     return pf.dropna()
 
 
-def compute_portfolio_metrics(portfolio_value: pd.Series,
-                              buy_price: dict = None,
-                              latest_price: dict = None,
-                              shares: dict = None,
-                              buy_date_actual: dict = None,
-                              risk_free_rate: float = 0.0655):
+def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None, latest_price: dict = None, shares: dict = None, buy_date_actual: dict = None, risk_free_rate: float = 0.0655):
 
     metrics = {}
 
@@ -141,29 +136,38 @@ def get_rsi_category(rsi_value):
         return None
     
 
-def compute_adx(df, period=14):
+def compute_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    df = df[["High", "Low", "Close"]].astype(float).dropna()
+    if df.empty or len(df) < period + 1:
+        return pd.Series(index=df.index, dtype=float)
+
     high = df["High"]
     low = df["Low"]
     close = df["Close"]
 
-    plus_dm = high.diff()
-    minus_dm = low.diff().abs()
+    up_move = high.diff()
+    down_move = -low.diff()
 
-    plus_dm = np.where((plus_dm > minus_dm) & (plus_dm > 0), plus_dm, 0)
-    minus_dm = np.where((minus_dm > plus_dm) & (minus_dm > 0), minus_dm, 0)
+    plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
+    minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
 
-    tr1 = high - low
-    tr2 = (high - close.shift()).abs()
-    tr3 = (low - close.shift()).abs()
-    tr = np.maximum.reduce([tr1, tr2, tr3])
+    plus_dm = pd.Series(plus_dm, index=df.index)
+    minus_dm = pd.Series(minus_dm, index=df.index)
 
-    atr = pd.Series(tr).rolling(period).mean()
+    tr = pd.concat([high - low,
+                   (high - close.shift()).abs(),
+                   (low - close.shift()).abs()], axis=1).max(axis=1)
 
-    pdi = 100 * (pd.Series(plus_dm).rolling(period).mean() / atr)
-    ndi = 100 * (pd.Series(minus_dm).rolling(period).mean() / atr)
+    atr = tr.ewm(alpha=1/period, adjust=False).mean()
+    plus_dm_smoothed = plus_dm.ewm(alpha=1/period, adjust=False).mean()
+    minus_dm_smoothed = minus_dm.ewm(alpha=1/period, adjust=False).mean()
 
-    dx = (abs(pdi - ndi) / (pdi + ndi)) * 100
-    adx = dx.rolling(period).mean()
+    plus_di = 100 * (plus_dm_smoothed / atr)
+    minus_di = 100 * (minus_dm_smoothed / atr)
+
+    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di)
+    adx = dx.ewm(alpha=1/period, adjust=False).mean()
+
     return adx
 
 
@@ -175,6 +179,7 @@ def classify_trend(df):
 
     slope20 = ma20.diff()
 
+    rsi = compute_rsi(close).iloc[-1]
     adx = compute_adx(df).iloc[-1]
 
     last = close.iloc[-1]
@@ -183,7 +188,7 @@ def classify_trend(df):
     ma20_slope = slope20.iloc[-1]
 
     if adx > 25:  
-        if last > last_ma20 and last > last_ma50 and ma20_slope > 0:
+        if last > last_ma20 and last > last_ma50 and ma20_slope > 0 and rsi > 55:
             return "Strong Bullish"
         elif last > last_ma20 and ma20_slope > 0:
             return "Bullish"
@@ -351,7 +356,7 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         records.append({"Ticker": t,
                         "Volatility (Annualized)": vol,
                         "Beta": beta,
-                        "Max Drawdown": max_dd,
+                        "Max Drawdown": abs(max_dd),
                         "VaR 95%": var_95,
                         "CVaR 95%": cvar_95,
                         "Returns": stock_rtn})
@@ -370,6 +375,8 @@ def compute_rolling_metrics(returns: pd.Series, window: int = 60, risk_free_rate
     rolling_vol = roll_std * np.sqrt(252)
     rolling_sharpe = ((rolling_mean * 252) / (roll_std* np.sqrt(252)))
     return rolling_vol, rolling_sharpe
+
+
 
 
 

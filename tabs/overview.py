@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from utils.data_fetch import fetch_sector_industry
 from utils.analytics import compute_position_health, portfolio_unrealized_pnl, safe_float
-from utils.charts import pie_chart, line_chart
+from utils.charts import pie_chart, bar_chart, line_chart
 from utils.ui import color_rsi_category, color_gain_loss, color_trend_class, interpretation_box 
 
 
@@ -25,11 +26,16 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
 
         gain_pct = {}
         gain_val = {}
+        sectors = []
+        industries = []
         for t in valid_tickers:
             bp = buy_price.get(t)
             lp = latest_price.get(t)
             gain_pct[t] = ((lp - bp) / bp) if (bp and lp) else np.nan
             gain_val[t] = (lp-bp) if (bp and lp) else np.nan
+            info = fetch_sector_industry(t)
+            sectors.append(info.get("Sector"))
+            industries.append(info.get("Industry"))
 
         best_stock = max(gain_pct, key=lambda k: gain_pct.get(k, -np.inf)) if gain_pct else None
         worst_stock = min(gain_pct, key=lambda k: gain_pct.get(k, np.inf)) if gain_pct else None
@@ -43,6 +49,8 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         pf_summary_table = pd.DataFrame({"Ticker": valid_tickers,
+                                         "Sector": sectors,
+                                         "Industry": industries,
                                          "Shares": [shares[t] for t in valid_tickers],
                                          "Buy Date": [pd.to_datetime(date_ranges[t][0]).date() for t in valid_tickers],
                                          "Buy Price (₹)": [safe_float(buy_price.get(t)) for t in valid_tickers],
@@ -171,5 +179,31 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         else:
             st.info("No historical data to plot for the selected date ranges.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+
+        total_stk = len(valid_tickers)
+        weight_stk = max(weights, key=weights.get)  
+        top_weight = weights[weight_stk] * 100
+        performance = "positive" if metrics['cumulative_return'] > 0 else "negative"
+        if not display_df.empty and "Trend" in display_df.columns:
+            total_positions = len(display_df)
+            uptrends = len(display_df[display_df["Trend"].str.contains("Bullish", case=False, na=False)])
+            downtrends = len(display_df[display_df["Trend"].str.contains("Bearish", case=False, na=False)])
+            
+            if uptrends / total_positions > 0.5:
+                sentiment = "showing positive momentum (mostly Bullish)"
+            elif downtrends / total_positions > 0.5:
+                sentiment = "under pressure (mostly Bearish)"
+            else:
+                sentiment = "showing a transition between trends"
+        else:
+            sentiment = "neutral (insufficient technical data)"
+
+        summary = [f"You currently manage a diversified portfolio of {total_stk} equity positions with a market value of ₹{total_value:,.2f}. The portfolio structure is primarily influenced by '{weight_stk}', which represents a significant {top_weight:.2f}% concentration.",
+            
+                   f"The strategy has yielded a {performance} cumulative return of {metrics['cumulative_return']:.2%}. Performance is currently being anchored by {best_stock}, which stands as the top contributor to your unrealized gains.",
+            
+                   f"Based on RSI, Moving Averages, and ADX metrics, the collective health of your holdings is {sentiment}."]
+        
+        interpretation_box("Portfolio Overview Summary", summary)
 
         return pf_summary_table

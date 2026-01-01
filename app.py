@@ -5,12 +5,11 @@ from utils.data_fetch import load_tickers, fetch_all_data
 from utils.analytics import portfolio_value_from_prices, compute_portfolio_metrics
 
 
-
 st.set_page_config(page_title='Portfolio Analysis Dashboard', layout='wide')
 apply_custom_css()
 header()
 sidebar_config()
-
+    
 if 'selected_tickers' not in st.session_state:
     st.session_state.selected_tickers = []
 if 'generated' not in st.session_state:
@@ -64,6 +63,13 @@ if st.session_state.generated:
     with st.spinner("Fetching & preparing data..."):
         data_bundle = fetch_all_data(portfolio, date_ranges)
         st.session_state.loaded_data = data_bundle
+        # price_df = data_bundle.get("price_df")
+        retry = data_bundle.get("price_df")
+
+        if retry is None or retry.empty:
+            st.warning("⚠️ Unable to fetch data. Please check your internet connection and reload the tab.")
+            st.session_state.generated = False 
+            st.stop()
 
     price_df = st.session_state.loaded_data["price_df"]
     price_dict = st.session_state.loaded_data["price_dict"]

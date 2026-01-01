@@ -20,7 +20,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
         metric_row([("Annualized Volatility", f"{metrics['volatility']:.2%}", None),
                     ("Sharpe Ratio", f"{metrics['sharpe']:.2f}", None),
                     ("Sortino Ratio", f"{metrics['sortino']:.2f}", None),
-                    ("Max Drawdown", f"{metrics['max_dd']:.2%}", None)])
+                    ("Max Drawdown", f"{abs(metrics['max_dd']):.2%}", None)])
         
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
@@ -96,3 +96,43 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                            title="")
         st.plotly_chart(fig_rolling, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+
+        if metrics['sharpe'] is not None:
+            if metrics['sharpe'] < 0:
+                sharpe_performance = "underperforming"
+            elif metrics['sharpe'] < 1.0:
+                sharpe_performance = "inefficient"
+            else:
+                sharpe_performance = "efficient"
+        
+        if metrics['volatility'] is not None:
+            if metrics['volatility'] <= 10:
+                vol_performance = "low"
+            elif metrics['volatility'] <= 20 :
+                vol_performance = "moderate"
+            else:
+                vol_performance = "high"
+
+        if metrics['max_dd'] is not None:
+            if abs(metrics['max_dd']) <= 20:
+                dd_performance = "contained"
+            else:
+                dd_performance = "significant" 
+
+        corr_matrix = corr.values
+        upper_tri = corr_matrix[np.triu_indices_from(corr_matrix, k=1)]
+        avg_corr = np.nanmean(upper_tri)
+
+        if avg_corr is not None:
+            if avg_corr < 0.30:
+                corr_performance = "well diversified"
+            elif avg_corr < 0.60:
+                corr_performance = "moderately diversified"
+            else:
+                corr_performance = "poorly diversified"
+
+        summary = [f"The portfolio exhibits {vol_performance} volatility, with a Sharpe ratio of {metrics['sharpe']:.2f}, indicating {sharpe_performance} risk-adjusted returns.", 
+
+                   f"The maximum drawdown of {abs(metrics['max_dd']):.2%} suggests downside risk is {dd_performance}, while correlation analysis shows {corr_performance} across holdings."]
+        
+        interpretation_box("Risk Summary", summary)

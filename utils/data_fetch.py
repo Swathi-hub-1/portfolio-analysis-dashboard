@@ -44,7 +44,7 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
 def fetch_sector_industry(ticker: str) -> dict:
     try:
         t = yqt(ticker)
-        profile = t.asset_profile
+        profile = t.summary_profile
 
         if isinstance(profile, dict) and ticker in profile:
             data = profile[ticker]

@@ -38,10 +38,11 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             industries.append(info.get("Industry"))
 
         best_stock = max(gain_pct, key=lambda k: gain_pct.get(k, -np.inf)) if gain_pct else None
-        worst_stock = min(gain_pct, key=lambda k: gain_pct.get(k, np.inf)) if gain_pct else None
-        
+        worst_stock = min(gain_pct, key=lambda k: gain_pct.get(k, np.inf)) if gain_pct else None 
+
         metric_row([("Top Performer", best_stock or "–", f"{gain_pct.get(best_stock, 0):.2%}" if best_stock else None),
                     ("Portfolio Value", f"₹{total_value:,.2f}", None),
+                    ("Portfolio Gain", f"₹{metrics['pf_gain_loss']:,.2f}", None),
                     ("Cumulative Return", f"{metrics['cumulative_return']:.2%}", None),
                     ("Portfolio CAGR", f"{metrics['cagr']:.2%}", None),
                     ("Worst Performer", worst_stock or "–", f"{gain_pct.get(worst_stock, 0):.2%}" if worst_stock else None),])
@@ -62,7 +63,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         pf_summary_table.index += 1
         pf_summary_table.index.name = 'Sl. No.'
 
-        st.markdown("<h3 style=color:#7161ef;'>Holdings Breakdown</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Holdings Breakdown</h3>", unsafe_allow_html=True)
         st.dataframe(pf_summary_table.style.format({'Buy Price (₹)': '₹{:,.2f}',
                                                     'Latest Price (₹)': '₹{:,.2f}',
                                                     'Gain/Loss %': '{:.2%}',
@@ -85,7 +86,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             if c in display_df.columns:
                 display_df[c] = display_df[c].apply(lambda v: np.nan if v in (None, "None", "-") else safe_float(v))
 
-        st.markdown("<h3 style=color:#7161ef;'>Technical Position Health</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Technical Position Health</h3>", unsafe_allow_html=True)
         st.dataframe(display_df.style.format({"RSI": "{:.2f}",
                                               "20D Momentum %": "{:.2%}",
                                               "52W High": "{:.2f}",
@@ -95,15 +96,31 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Portfolio Allocation by Value</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Portfolio Allocation by Value</h3>", unsafe_allow_html=True)
         if valid_tickers:
             labels = [f"{t} ({share_values[t]:,.0f} ₹)" for t in valid_tickers]
             vals = [weights[t] * 100 for t in valid_tickers]
             fig = pie_chart(labels, vals, title=None)
             st.plotly_chart(fig, width="stretch")
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
+
+        st.markdown("<h3 style='color:#7161ef;'> Sector Allocation </h3>", unsafe_allow_html=True)
+        sector_count = (pf_summary_table.groupby('Sector').agg(Total_Value=("Share Value (₹)", "sum"), Stocks=("Ticker", lambda x: ", ".join(x)), Count=("Ticker", "count")).reset_index())
+        sector_count["Weight %"] = (sector_count["Total_Value"] / sector_count["Total_Value"].sum()) * 100
+        # sector_count = sector_count.sort_values("Weight %", ascending=False)
+        fig = bar_chart(sector_count, 
+                        x="Sector", 
+                        y="Weight %",
+                        color="Sector",
+                        show_text=True,
+                        hover_col=["Stocks", "Total_Value", "Weight %"],
+                        labels={"Stocks": "Stocks in Sector", "Total_Value": "Total Value (₹)"},
+                        title=None)
+        fig.update_layout(yaxis_tickformat=".1f", xaxis_tickangle=-25)
+        st.plotly_chart(fig, width="stretch")
+        st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
-        st.markdown("<h3 style=color:#7161ef;'>Unrealized P/L Trend</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Unrealized P/L Trend</h3>", unsafe_allow_html=True)
         try:
             view_mode = st.segmented_control("Unrealized P/L View", ["Portfolio-Level", "Individual Stock"], default="Portfolio-Level")
             pnl_df = portfolio_unrealized_pnl(price_df[valid_tickers] if not price_df.empty else pd.DataFrame(), shares, buy_price, buy_date_actual)
@@ -145,7 +162,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             st.warning(f"Unrealized P/L error: {e}")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Historical Price Trend</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Historical Price Trend</h3>", unsafe_allow_html=True)
         combined = []
         for t in valid_tickers:
             ser = price_df[t].loc[price_df[t].index >= date_ranges[t][0]]
@@ -183,27 +200,45 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         total_stk = len(valid_tickers)
         weight_stk = max(weights, key=weights.get)  
         top_weight = weights[weight_stk] * 100
+        concentration = "high" if top_weight > 50 else "moderate"
+        p_l = "profit" if metrics['pf_gain_loss'] > 0 else "loss"
         performance = "positive" if metrics['cumulative_return'] > 0 else "negative"
-        if not display_df.empty and "Trend" in display_df.columns:
-            total_positions = len(display_df)
-            uptrends = len(display_df[display_df["Trend"].str.contains("Bullish", case=False, na=False)])
-            downtrends = len(display_df[display_df["Trend"].str.contains("Bearish", case=False, na=False)])
-            
-            if uptrends / total_positions > 0.5:
-                sentiment = "showing positive momentum (mostly Bullish)"
-            elif downtrends / total_positions > 0.5:
-                sentiment = "under pressure (mostly Bearish)"
-            else:
-                sentiment = "showing a transition between trends"
-        else:
-            sentiment = "neutral (insufficient technical data)"
+        top_sector = sector_count.iloc[0]
 
-        summary = [f"You currently manage a diversified portfolio of {total_stk} equity positions with a market value of ₹{total_value:,.2f}. The portfolio structure is primarily influenced by '{weight_stk}', which represents a significant {top_weight:.2f}% concentration.",
-            
-                   f"The strategy has yielded a {performance} cumulative return of {metrics['cumulative_return']:.2%}. Performance is currently being anchored by {best_stock}, which stands as the top contributor to your unrealized gains.",
-            
-                   f"Based on RSI, Moving Averages, and ADX metrics, the collective health of your holdings is {sentiment}."]
+        trend_score = {"Strong Bullish": 2,
+                       "Bullish": 1,
+                       "Weak Bullish": 0.5,
+                       "Range Bound": 0,
+                       "Weak Bearish": -0.5,
+                       "Bearish": -1,
+                       "Strong Bearish": -2,}
         
+        if not display_df.empty and "Trend" in display_df.columns:
+            display_df["Trend Score"] = display_df["Trend"].map(trend_score)
+            valid_scores = display_df["Trend Score"].dropna()
+
+            if not valid_scores.empty:
+                net_trend_score = valid_scores.mean()
+            else:
+                net_trend_score = 0
+        else:
+            net_trend_score = 0
+        
+        if net_trend_score >= 0.5:
+            sentiment = "showing positive momentum across most holdings"
+        elif net_trend_score <= -0.5:
+            sentiment = "under pressure with bearish momentum dominating"
+        else:
+            sentiment = "showing mixed signals with no clear directional bias"
+
+        summary = [f"You currently manage a diversified portfolio of {total_stk} equity positions with a total market value of ₹{total_value:,.2f}. Overall exposure shows {concentration} concentration, with {weight_stk} representing the largest holding at {top_weight:.2f}% of total portfolio value.",
+                                                                                                                                                    
+                   f"The portfolio is currently in {p_l}, delivering a {performance} cumulative return of {metrics['cumulative_return']:.2%}. Performance is currently being anchored by {best_stock}, which stands as the top contributor to your unrealized gains during the period.",
+            
+                   f"From a technical perspective, analysis of RSI, Moving Averages, and ADX indicators suggests that the portfolio is {sentiment}.",
+                   
+                   f"The portfolio is most heavily allocated to the {top_sector['Sector']} sector ({top_sector['Weight %']:.1f}% of total value), driven primarily by holdings such as {top_sector['Stocks']}."]
+ 
         interpretation_box("Portfolio Overview Summary", summary)
 
         return pf_summary_table

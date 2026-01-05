@@ -31,8 +31,9 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         for t in valid_tickers:
             bp = buy_price.get(t)
             lp = latest_price.get(t)
+            sh = shares.get(t, 0)
             gain_pct[t] = ((lp - bp) / bp) if (bp and lp) else np.nan
-            gain_val[t] = (lp-bp) if (bp and lp) else np.nan
+            gain_val[t] = (lp-bp) * sh if (bp and lp and sh) else np.nan
             info = fetch_sector_industry(t)
             sectors.append(info.get("Sector"))
             industries.append(info.get("Industry"))
@@ -107,7 +108,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         st.markdown("<h3 style='color:#7161ef;'> Sector Allocation </h3>", unsafe_allow_html=True)
         sector_count = (pf_summary_table.groupby('Sector').agg(Total_Value=("Share Value (₹)", "sum"), Stocks=("Ticker", lambda x: ", ".join(x)), Count=("Ticker", "count")).reset_index())
         sector_count["Weight %"] = (sector_count["Total_Value"] / sector_count["Total_Value"].sum()) * 100
-        # sector_count = sector_count.sort_values("Weight %", ascending=False)
+        sector_count = sector_count.sort_values("Weight %", ascending=False)
         fig = bar_chart(sector_count, 
                         x="Sector", 
                         y="Weight %",
@@ -201,9 +202,21 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
         weight_stk = max(weights, key=weights.get)  
         top_weight = weights[weight_stk] * 100
         concentration = "high" if top_weight > 50 else "moderate"
-        p_l = "profit" if metrics['pf_gain_loss'] > 0 else "loss"
-        performance = "positive" if metrics['cumulative_return'] > 0 else "negative"
-        top_sector = sector_count.iloc[0]
+        
+        pf_gain_loss = safe_float(metrics.get("pf_gain_loss", 0))
+        cum_return = safe_float(metrics.get("cumulative_return", 0))
+        p_l = "profit" if pf_gain_loss > 0 else "loss"
+        performance = "positive" if cum_return > 0 else "negative"
+        
+        if not sector_count.empty and sector_count["Sector"].notna().any():
+            top_sector = sector_count.iloc[0]
+            sector_name = top_sector.get("Sector", "Unknown")
+            sector_weight = safe_float(top_sector.get("Weight %", 0))
+            sector_stks = top_sector.get("Stocks", "multiple holdings")
+        else:
+            sector_name = "Unknown"
+            sector_weight = 0.0
+            sector_stks = "multiple holdings"
 
         trend_score = {"Strong Bullish": 2,
                        "Bullish": 1,
@@ -237,7 +250,7 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             
                    f"From a technical perspective, analysis of RSI, Moving Averages, and ADX indicators suggests that the portfolio is {sentiment}.",
                    
-                   f"The portfolio is most heavily allocated to the {top_sector['Sector']} sector ({top_sector['Weight %']:.1f}% of total value), driven primarily by holdings such as {top_sector['Stocks']}."]
+                   f"The portfolio is most heavily allocated to the {sector_name} sector ({sector_weight:.1f}% of total value), driven primarily by holdings such as {sector_stks}."]
  
         interpretation_box("Portfolio Overview Summary", summary)
 

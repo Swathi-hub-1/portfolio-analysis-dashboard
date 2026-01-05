@@ -1,56 +1,61 @@
 import streamlit as st
 
-ACCENT = '#957fef'
-ACCENT_2 = '#7161ef'
-TEXT = '#f8f9fa'
+# ACCENT = '#957fef'
+# ACCENT_2 = '#7161ef'
+# TEXT = '#e5e7eb'
+
+PRIMARY = "#7161ef"
+SECONDARY = "#957fef"
+TEXT = "var(--text-color)"
 
 def apply_custom_css():
     st.markdown(f"""
                 <style>   
-                div.stButton > button {{background-color: {ACCENT};
+                div.stButton > button {{background-color: {SECONDARY};
                                         color: {TEXT};
                                         border-radius: 10px;
-                                        border: 1px solid {ACCENT_2};
+                                        border: 1px solid {PRIMARY};
                                         font-weight: 600;
                                         height: 3em;
                                         transition: all 0.3s ease-in-out;}}
 
-                div.stButton > button:hover {{background-color: {ACCENT_2};
+                div.stButton > button:hover {{background-color: {PRIMARY};
                                               color: #f8f9fa;
-                                              box-shadow: 0px 0px 12px {ACCENT_2};
+                                              box-shadow: 0px 0px 12px {PRIMARY};
                                               transform: translateY(-2px);}}
 
-                div[data-testid="stMetric"] {{border: 1.4px solid {ACCENT_2};
+                div[data-testid="stMetric"] {{border: 1.4px solid {PRIMARY};
                                               border-radius: 15px;
                                               padding: 12px;
                                               transition: all 0.3s ease;}}
 
-                div[data-testid="stMetric"]:hover {{border-color: {ACCENT};
+                div[data-testid="stMetric"]:hover {{background: rgba(149,127,239,0.1);
+                                                    border-color: {SECONDARY};
                                                     transform: translateY(-2px);}}
                 
-                div[data-testid="stDataFrame"] thead th {{background-color: {ACCENT_2} !important;
+                div[data-testid="stDataFrame"] thead th {{background-color: {PRIMARY} !important;
                                                           color: {TEXT} !important;
                                                           font-weight: 600 !important;
                                                           text-align: center !important;
-                                                          border-bottom: 1px solid {ACCENT};}}
+                                                          border-bottom: 1px solid {SECONDARY};}}
 
                 details{{border-radius: 10px !important;
-                        border: 1px solid {ACCENT_2}33 !important;
+                        border: 1px solid {PRIMARY}33 !important;
                         background: rgba(76, 201, 240, 0.06) !important;
                         margin-bottom: 8px !important;
                         transition: 0.25s ease-in-out !important;
                         padding: 4px !important;}}
 
-                summary {{color: {ACCENT} !important;
+                summary {{color: {SECONDARY} !important;
                          font-weight: 600 !important;
                          padding: 6px !important;
                          cursor: pointer !important;}}
 
                 details:hover {{transform: scale(1.01);
-                                border-color: {ACCENT_2};
-                                box-shadow: 0 0 12px {ACCENT_2};}}
+                                border-color: {PRIMARY};
+                                box-shadow: 0 0 12px {PRIMARY};}}
 
-                .stTabs [data-baseweb="tab"]{{color: {ACCENT_2};
+                .stTabs [data-baseweb="tab"]{{color: {PRIMARY};
                                               transition: all 0.25s ease !important;
                                               padding: 12px 22px !important;  
                                               font-size: 10px;
@@ -61,19 +66,19 @@ def apply_custom_css():
                                                      font-size: 20px;
                                                      transform: translateY(-2px);}}
 
-                .stTabs [data-baseweb="tab"][aria-selected="true"] {{color: {ACCENT_2} !important;
+                .stTabs [data-baseweb="tab"][aria-selected="true"] {{color: {PRIMARY} !important;
                                                                      font-weight: 900 !important;
                                                                      opacity: 1.9;
                                                                      transform: translateY(-1px);}}    
                 </style>""", unsafe_allow_html=True)
 
 def header():
-    st.markdown(f"<h1 style='text-align:center; color:{ACCENT_2};'>Portfolio Analysis Dashboard</h1>", unsafe_allow_html=True)
-    st.markdown(f"<hr style='border:0.5px solid {ACCENT}; opacity:0.8;'>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align:center; color:{PRIMARY};'>Portfolio Analysis Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown(f"<hr style='border:0.5px solid {SECONDARY}; opacity:0.8;'>", unsafe_allow_html=True)
 
 
 def sidebar_config():
-    st.sidebar.markdown(f"<h1 style='color:{ACCENT_2}; text-align: center; width: 100%;'>Portfolio Input Panel</h1><hr style='border:0.5px solid {ACCENT};'>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"<h1 style='color:{PRIMARY}; text-align: center; width: 100%;'>Portfolio Input Panel</h1><hr style='border:0.5px solid {SECONDARY};'>", unsafe_allow_html=True)
     
 
 def home_page():
@@ -117,7 +122,7 @@ def home_page():
                 </div>""",unsafe_allow_html=True)
     
     st.markdown(f"""
-                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:1.1; color:{ACCENT}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
+                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:1.1; color:{SECONDARY}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
                     2025 • Portfolio Analytics Dashboard  
                     <br>
                     Built for learning, research, and informed investing.
@@ -127,7 +132,7 @@ def home_page():
 def interpretation_box(title, points):
     st.markdown(f"""
         <div style="background: rgba(149,127,239,0.1); border: 1px solid rgba(149,127,239,0.3); border-radius: 14px; padding: 20px 24px; margin-top: 25px;">
-            <h4 style="color:{ACCENT_2}; margin-bottom:12px;">{title}</h4>
+            <h4 style="color:{PRIMARY}; margin-bottom:12px;">{title}</h4>
             <ul style="line-height:1.75; font-size:15px; padding-left: 18px; margin: 0;">
                 {''.join([f'<li style="margin-bottom: 10px;">{p}</li>' for p in points])}
             </ul>

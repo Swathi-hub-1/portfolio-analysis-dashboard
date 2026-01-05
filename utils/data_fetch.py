@@ -8,7 +8,7 @@ from typing import Tuple, Dict
 load_dotenv() 
 
 @st.cache_data(show_spinner=False)
-def load_tickers(path: str = "Tickers.xlsx") -> pd.DataFrame:
+def load_tickers(path: str = "Tickers.xlsx") -> pd.Series:
     try:
         df = pd.read_excel(path)
     except Exception:
@@ -28,7 +28,7 @@ def load_tickers(path: str = "Tickers.xlsx") -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
-def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.Series:
+def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -> pd.DataFrame:
     try:
         df = yf.download(ticker, start=start, end=end, progress=False, auto_adjust=False)
         if df is None or df.empty:
@@ -67,7 +67,8 @@ def fetch_fundamentals(ticker: str) -> dict:
         return{"income": income,
                "balance": balance,
                "s_o": shares_outstanding}
-    except Exception:
+    except Exception as e:
+        st.warning(f"Fundamentals unavailable for {ticker}")
         return{}
 
    

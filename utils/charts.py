@@ -82,8 +82,16 @@ def box_chart(df,x_col, y_col, title, hover_label_col=None, color_col=None):
     return fig
 
 
-def bar_chart(df, x, y, color=None, title=None, labels=None, show_text=False, hover_col=None):
-    fig = px.bar(df, x=x, y=y, color=color, labels=labels, text=y if show_text else None, template=COMMON_TEMPLATE, color_discrete_sequence=PALETTE)
-    fig.update_traces(hovertemplate="<b>%{customdata}</b><br>" f"{x}: %{{x}}<br>" f"{y}: %{{y}}", customdata=df[hover_col],)
-    fig.update_layout(title=title or "", margin=dict(t=60, b=60),  xaxis_title=labels.get(x) if labels else x, yaxis_title=labels.get(y) if labels else y, legend=dict(orientation="h", y=-0.25))
+def bar_chart(df, x, y, color=None, title=None, labels=None, show_text=False, hover_col=None, hover_title=None):
+    hover_data = {}
+    if hover_col:
+        for col in hover_col:
+            if col in df.columns:
+                hover_data[col] = True
+    fig = px.bar(df, x=x, y=y, color=color, labels=labels, text=y if show_text else None, template=COMMON_TEMPLATE, color_discrete_sequence=PALETTE, hover_data=hover_data if hover_data else None,)
+    if show_text == True:
+        fig.update_traces(texttemplate="%{y:.2f}%", textposition="outside")
+    if hover_title:    
+        fig.update_traces(hovertemplate="<b>%{customdata}</b><br>" + "%{hovertext}<extra></extra>")
+    fig.update_layout(title=title or "", margin=dict(t=60, b=60),  xaxis_title=labels.get(x) if labels else x, yaxis_title=labels.get(y) if labels else y)
     return fig

@@ -33,7 +33,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                        "Max Drawdown", 
                                        "VaR 95%", 
                                        "CVaR 95%"]].copy()
-            st.markdown("<h3 style=color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
             st.dataframe(display_risk_df.style.format({"Volatility (Annualized)": "{:.2%}",
                                                        "Beta": "{:.2f}",
                                                        "Max Drawdown": "{:.2%}",
@@ -44,7 +44,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
 
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Drawdown History (From Peak)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Drawdown History (From Peak)</h3>", unsafe_allow_html=True)
         if not pf_returns.empty:
             dd = pf_returns.to_drawdown_series()
             fig_dd = area_chart(dd.index, dd.values, title=None)
@@ -53,7 +53,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             st.info("Insufficient returns data for drawdown chart.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
-        st.markdown("<h3 style=color:#7161ef;'>Risk–Return Positioning (Annualized)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Risk–Return Positioning (Annualized)</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
             rr_df = pd.DataFrame({"Ticker": risk_df["Ticker"],
                                   "Volatility": risk_df["Volatility (Annualized)"],
@@ -73,17 +73,17 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
 
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
-        st.markdown("<h3 style=color:#7161ef;'>Correlation Matrix</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Correlation Matrix</h3>", unsafe_allow_html=True)
         if not price_df.empty:
-            corr = price_df[valid_tickers].pct_change().dropna().corr()
+            corr = np.log(price_df[valid_tickers] / price_df[valid_tickers].shift(1)).dropna().corr()
             fig_corr = heatmap_chart(corr, title="")
             st.plotly_chart(fig_corr, width="stretch")
         else:
             st.info("Correlation heatmap cannot be created (no price data).")
 
-        st.markdown("<h3 style=color:#7161ef;'>Rolling Volatility & Sharpe Ratio</h3>", unsafe_allow_html=True)
-        rolling_vol, rolling_sharpe = compute_rolling_metrics(metrics["returns"], window=60)
-        df_roll = pd.DataFrame({"Date": metrics["returns"].index,
+        st.markdown("<h3 style='color:#7161ef;'>Rolling Volatility & Sharpe Ratio</h3>", unsafe_allow_html=True)
+        rolling_vol, rolling_sharpe = compute_rolling_metrics(metrics["log_returns"], window=60)
+        df_roll = pd.DataFrame({"Date": metrics["log_returns"].index,
                                 "Rolling Vol": rolling_vol,
                                 "Rolling Sharpe": rolling_sharpe})
 
@@ -105,24 +105,20 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             else:
                 sharpe_performance = "efficient"
         
+        vol = metrics['volatility'] * 100
         if metrics['volatility'] is not None:
-            if metrics['volatility'] <= 10:
+            if vol <= 10:
                 vol_performance = "low"
-            elif metrics['volatility'] <= 20 :
+            elif vol <= 20 :
                 vol_performance = "moderate"
             else:
                 vol_performance = "high"
 
-        if metrics['max_dd'] is not None:
-            if abs(metrics['max_dd']) <= 20:
-                dd_performance = "contained"
-            else:
-                dd_performance = "significant" 
+        dd_performance = "contained" if abs(metrics['max_dd']) <= -20 else "significant"
 
         corr_matrix = corr.values
         upper_tri = corr_matrix[np.triu_indices_from(corr_matrix, k=1)]
         avg_corr = np.nanmean(upper_tri)
-
         if avg_corr is not None:
             if avg_corr < 0.30:
                 corr_performance = "well diversified"
@@ -131,8 +127,28 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             else:
                 corr_performance = "poorly diversified"
 
-        summary = [f"The portfolio exhibits {vol_performance} volatility, with a Sharpe ratio of {metrics['sharpe']:.2f}, indicating {sharpe_performance} risk-adjusted returns.", 
+        rank_df = display_risk_df.dropna()
+        rank_df["vol_rank"] = rank_df["Volatility (Annualized)"].rank(ascending=True)
+        rank_df["beta_rank"] = rank_df["Beta"].rank(ascending=True)
+        rank_df["dd_rank"] = rank_df["Max Drawdown"].rank(ascending=True)
+        rank_df["var_rank"] = rank_df["VaR 95%"].rank(ascending=True)
+        rank_df["cvar_rank"] = rank_df["CVaR 95%"].rank(ascending=True)
+        rank_df["risk_score"] = (rank_df["vol_rank"] + rank_df["beta_rank"] + rank_df["dd_rank"] + rank_df["var_rank"] + rank_df["cvar_rank"])
 
-                   f"The maximum drawdown of {abs(metrics['max_dd']):.2%} suggests downside risk is {dd_performance}, while correlation analysis shows {corr_performance} across holdings."]
-        
+        stable_stk = None
+        risky_stk = None
+
+        if len(rank_df) > 2:
+            stable = rank_df.loc[rank_df["risk_score"].idxmin()] 
+            risk = rank_df.loc[rank_df["risk_score"].idxmax()]
+
+            stable_stk = stable["Ticker"]
+            risky_stk = risk["Ticker"]
+
+        summary = [f"{stable_stk} provides stability through lower volatility, beta, drawdown, and tail-risk measures, helping smooth overall portfolio fluctuations. In contrast, {risky_stk} contributes the highest risk, driven by elevated volatility, stronger market linkage, and deeper drawdowns",
+                   
+                   f"The portfolio exhibits {vol_performance} volatility, with a Sharpe ratio of {metrics['sharpe']:.2f}, indicating {sharpe_performance} risk-adjusted returns.", 
+
+                   f"The maximum drawdown of {abs(metrics['max_dd']):.2%} suggests downside risk is {dd_performance}, while correlation analysis shows {corr_performance} across holdings.",]
+                           
         interpretation_box("Risk Summary", summary)

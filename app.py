@@ -63,7 +63,6 @@ if st.session_state.generated:
     with st.spinner("Fetching & preparing data..."):
         data_bundle = fetch_all_data(portfolio, date_ranges)
         st.session_state.loaded_data = data_bundle
-        # price_df = data_bundle.get("price_df")
         retry = data_bundle.get("price_df")
 
         if retry is None or retry.empty:

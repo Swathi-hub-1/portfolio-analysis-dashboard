@@ -14,12 +14,13 @@ def portfolio_value_from_prices(price_df: pd.DataFrame, shares: dict) -> pd.Seri
     return pf.dropna()
 
 
-def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None, latest_price: dict = None, shares: dict = None, buy_date_actual: dict = None, risk_free_rate: float = 0.0655):
+def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None, latest_price: dict = None, shares: dict = None, buy_date_actual: dict = None, risk_free_rate: float = 0.0526): 
 
     metrics = {}
 
     if portfolio_value.empty or len(portfolio_value) < 2:
         metrics.update({"cumulative_return": 0.0,
+                        "pf_gain_loss": 0.0,
                         "volatility": 0.0,
                         "cagr": 0.0,
                         "sharpe": np.nan,
@@ -28,8 +29,10 @@ def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None
                         "returns": pd.Series(dtype=float)})
    
     returns = portfolio_value.pct_change().dropna()
+    log_returns = np.log(portfolio_value / portfolio_value.shift(1)).dropna()
     metrics["returns"] = returns
-    metrics["volatility"] = returns.std() * np.sqrt(252)
+    metrics["log_returns"] = log_returns
+    metrics["volatility"] = log_returns.std() * np.sqrt(252)
     start_val = portfolio_value.iloc[0]
     end_val = portfolio_value.iloc[-1]
     years = (portfolio_value.index[-1] - portfolio_value.index[0]).days / 365.25
@@ -38,14 +41,14 @@ def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None
 
     try:
         daily_rf = risk_free_rate / 252
-        excess = returns - daily_rf
+        excess = log_returns - daily_rf
 
         metrics["sharpe"] = (excess.mean() / excess.std()) * np.sqrt(252)
     except Exception:
         metrics["sharpe"] = np.nan
 
     try:
-        downside = returns[returns < 0]
+        downside = log_returns[log_returns < 0]
         if downside.empty:
             metrics["sortino"] = np.nan
         else:
@@ -86,6 +89,9 @@ def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None
             investor_cum_return = 0.0
 
         metrics["cumulative_return"] = investor_cum_return
+
+        pf_val = total_current - total_invested if total_invested > 0 else 0
+        metrics["pf_gain_loss"] = pf_val
 
     return metrics
 
@@ -174,7 +180,7 @@ def compute_adx(df: pd.DataFrame, period: int = 14) -> pd.Series:
 def classify_trend(df):
     close = df["Close"]
 
-    ma20 = close.rolling(20).mean()
+    ma20 = close.ewm(span=20, adjust=False).mean()
     ma50 = close.rolling(50).mean()
 
     slope20 = ma20.diff()
@@ -323,19 +329,21 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         return pd.DataFrame()
     
     try:
-        market_returns = market_df["Close"].pct_change().dropna()
+        market_log_rtn = np.log(market_df["Close"] /  market_df["Close"].shift(1)).dropna()
     except Exception:
         return pd.DataFrame()
 
-    returns = price_df.pct_change().dropna()
+    # returns = price_df.pct_change().dropna()
+    log_returns = np.log(price_df / price_df.shift(1)).dropna()
+
     records = []
     
     for t in price_df.columns:
-        ser = returns[t].dropna()
+        ser = log_returns[t].dropna()
         if ser.empty:
             continue
 
-        combined = pd.concat([ser, market_returns], axis=1).dropna()
+        combined = pd.concat([ser, market_log_rtn], axis=1).dropna()
         if combined.empty:
             continue
 
@@ -346,13 +354,15 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         cov = np.cov(stock_rtn, mkt_rtn, ddof=0)[0, 1]
         var_pf = np.var(mkt_rtn, ddof=0)
         beta = cov / var_pf if var_pf != 0 else np.nan
-        cumulative = (1 + stock_rtn).cumprod()
+        returns = price_df[t].pct_change().dropna()
+        cumulative = (1 + returns).cumprod()
         rolling_max = cumulative.cummax()
         drawdown = (cumulative - rolling_max) / rolling_max
         max_dd = drawdown.min()
         var_95 = -np.percentile(stock_rtn, 5)
-        cvar_95 = -stock_rtn[stock_rtn <= var_95].mean() if not ser.empty else np.nan
-
+        # cvar_95 = -stock_rtn[stock_rtn <= var_95].mean() if not ser.empty else np.nan
+        tail_losses = stock_rtn[stock_rtn <= var_95]
+        cvar_95 = -tail_losses.mean() if not tail_losses.empty else np.nan
         records.append({"Ticker": t,
                         "Volatility (Annualized)": vol,
                         "Beta": beta,
@@ -364,11 +374,55 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
     df = pd.DataFrame(records)
     df = df.dropna(subset=["Ticker"])
     return df
+    # try:
+    #     market_log_rtn = np.log(market_df["Close"] /  market_df["Close"].shift(1)).dropna()
+    # except Exception:
+    #     return pd.DataFrame()
+
+    # log_returns = np.log(price_df / price_df.shift(1)).dropna()
+    # records = []
+    
+    # for t in price_df.columns:
+    #     ser = log_returns[t].dropna()
+    #     if ser.empty:
+    #         continue
+
+    #     combined = pd.concat([ser, market_log_rtn], axis=1).dropna()
+    #     if combined.empty:
+    #         continue
+
+    #     stock_l_rtn = combined.iloc[:, 0]
+    #     mkt_l_rtn = combined.iloc[:, 1]
+
+    #     vol = stock_l_rtn.std(ddof=0) * np.sqrt(252)
+    #     cov = np.cov(stock_l_rtn, mkt_l_rtn, ddof=0)[0, 1]
+    #     var_pf = np.var(mkt_l_rtn, ddof=0)
+    #     beta = cov / var_pf if var_pf != 0 else np.nan
+    #     stock_rtn = price_df.pct_change().dropna()
+    #     cumulative = (1 + stock_rtn).cumprod()
+    #     rolling_max = cumulative.cummax()
+    #     drawdown = (cumulative - rolling_max) / rolling_max
+    #     max_dd = drawdown.min()
+    #     var_95 = -np.percentile(stock_l_rtn, 5)
+    #     tail_losses = stock_l_rtn[stock_l_rtn <= var_95]
+    #     cvar_95 = -tail_losses.mean() if not tail_losses.empty else np.nan
+
+    #     records.append({"Ticker": t,
+    #                     "Volatility (Annualized)": vol,
+    #                     "Beta": beta,
+    #                     "Max Drawdown": abs(max_dd),
+    #                     "VaR 95%": var_95,
+    #                     "CVaR 95%": cvar_95,
+    #                     "Returns": stock_rtn})
+
+    # df = pd.DataFrame(records)
+    # df = df.dropna(subset=["Ticker"])
+    # return df
 
 
-def compute_rolling_metrics(returns: pd.Series, window: int = 60, risk_free_rate: float = 0.0655):
+def compute_rolling_metrics(log_returns: pd.Series, window: int = 60, risk_free_rate: float = 0.0655):
     daily_rf = risk_free_rate / 252
-    excess = returns - daily_rf
+    excess = log_returns - daily_rf
     rolling_mean = excess.rolling(window).mean()
     roll_std = excess.rolling(window).std()
 

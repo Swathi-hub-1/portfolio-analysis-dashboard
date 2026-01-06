@@ -40,6 +40,8 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
 
         best_stock = max(gain_pct, key=lambda k: gain_pct.get(k, -np.inf)) if gain_pct else None
         worst_stock = min(gain_pct, key=lambda k: gain_pct.get(k, np.inf)) if gain_pct else None 
+        sectors = [s if s not in (None, "", np.nan) else "Unknown" for s in sectors]
+        industries = [i if i not in (None, "", np.nan) else "Unknown" for i in industries]
 
         metric_row([("Top Performer", best_stock or "–", f"{gain_pct.get(best_stock, 0):.2%}" if best_stock else None),
                     ("Portfolio Value", f"₹{total_value:,.2f}", None),

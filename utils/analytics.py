@@ -333,35 +333,37 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
     except Exception:
         return pd.DataFrame()
 
-    # returns = price_df.pct_change().dropna()
     log_returns = np.log(price_df / price_df.shift(1)).dropna()
-
     records = []
     
     for t in price_df.columns:
         ser = log_returns[t].dropna()
         if ser.empty:
             continue
-
-        combined = pd.concat([ser, market_log_rtn], axis=1).dropna()
-        if combined.empty:
+        
+        market_log = market_log_rtn.reindex(ser.index).dropna()
+        combined = pd.concat([ser, market_log], axis=1, join="inner").dropna()
+        # if combined.empty:
+        if len(combined) < 60:
             continue
 
         stock_rtn = combined.iloc[:, 0]
         mkt_rtn = combined.iloc[:, 1]
 
         vol = stock_rtn.std(ddof=0) * np.sqrt(252)
+
         cov = np.cov(stock_rtn, mkt_rtn, ddof=0)[0, 1]
         var_pf = np.var(mkt_rtn, ddof=0)
         beta = cov / var_pf if var_pf != 0 else np.nan
+
         returns = price_df[t].pct_change().dropna()
         cumulative = (1 + returns).cumprod()
         rolling_max = cumulative.cummax()
         drawdown = (cumulative - rolling_max) / rolling_max
         max_dd = drawdown.min()
+
         var_95 = -np.percentile(stock_rtn, 5)
-        # cvar_95 = -stock_rtn[stock_rtn <= var_95].mean() if not ser.empty else np.nan
-        tail_losses = stock_rtn[stock_rtn <= var_95]
+        tail_losses = stock_rtn[stock_rtn <= -var_95]
         cvar_95 = -tail_losses.mean() if not tail_losses.empty else np.nan
         records.append({"Ticker": t,
                         "Volatility (Annualized)": vol,
@@ -374,50 +376,6 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
     df = pd.DataFrame(records)
     df = df.dropna(subset=["Ticker"])
     return df
-    # try:
-    #     market_log_rtn = np.log(market_df["Close"] /  market_df["Close"].shift(1)).dropna()
-    # except Exception:
-    #     return pd.DataFrame()
-
-    # log_returns = np.log(price_df / price_df.shift(1)).dropna()
-    # records = []
-    
-    # for t in price_df.columns:
-    #     ser = log_returns[t].dropna()
-    #     if ser.empty:
-    #         continue
-
-    #     combined = pd.concat([ser, market_log_rtn], axis=1).dropna()
-    #     if combined.empty:
-    #         continue
-
-    #     stock_l_rtn = combined.iloc[:, 0]
-    #     mkt_l_rtn = combined.iloc[:, 1]
-
-    #     vol = stock_l_rtn.std(ddof=0) * np.sqrt(252)
-    #     cov = np.cov(stock_l_rtn, mkt_l_rtn, ddof=0)[0, 1]
-    #     var_pf = np.var(mkt_l_rtn, ddof=0)
-    #     beta = cov / var_pf if var_pf != 0 else np.nan
-    #     stock_rtn = price_df.pct_change().dropna()
-    #     cumulative = (1 + stock_rtn).cumprod()
-    #     rolling_max = cumulative.cummax()
-    #     drawdown = (cumulative - rolling_max) / rolling_max
-    #     max_dd = drawdown.min()
-    #     var_95 = -np.percentile(stock_l_rtn, 5)
-    #     tail_losses = stock_l_rtn[stock_l_rtn <= var_95]
-    #     cvar_95 = -tail_losses.mean() if not tail_losses.empty else np.nan
-
-    #     records.append({"Ticker": t,
-    #                     "Volatility (Annualized)": vol,
-    #                     "Beta": beta,
-    #                     "Max Drawdown": abs(max_dd),
-    #                     "VaR 95%": var_95,
-    #                     "CVaR 95%": cvar_95,
-    #                     "Returns": stock_rtn})
-
-    # df = pd.DataFrame(records)
-    # df = df.dropna(subset=["Ticker"])
-    # return df
 
 
 def compute_rolling_metrics(log_returns: pd.Series, window: int = 60, risk_free_rate: float = 0.0655):

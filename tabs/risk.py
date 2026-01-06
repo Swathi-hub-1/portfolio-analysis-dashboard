@@ -127,6 +127,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             else:
                 corr_performance = "poorly diversified"
 
+        display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
         rank_df = display_risk_df.dropna()
         rank_df["vol_rank"] = rank_df["Volatility (Annualized)"].rank(ascending=True)
         rank_df["beta_rank"] = rank_df["Beta"].rank(ascending=True)

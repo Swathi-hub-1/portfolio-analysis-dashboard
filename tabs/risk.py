@@ -184,7 +184,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
         summary = [f"{stable_stk} emerges as the portfolio’s most stable position, ranking lowest across combined risk measures, thereby contributing to smoother overall portfolio behavior. " 
                    f"In contrast, {risky_stk} ranks highest contributing the highest risk, driven by elevated volatility, stronger market linkage, and deeper drawdowns",
                 
-                   f"At the portfolio level, volatility is assessed as {vol_performance}, with a Sharpe ratio of {metrics['sharpe']:.2f} indicating overall risk-adjusted performance is {sharpe_performance}," 
+                   f"At the portfolio level, volatility is assessed as {vol_performance}, with a Sharpe ratio of {metrics['sharpe']:.2f} indicating overall risk-adjusted performance is {sharpe_performance}, " 
                    f"and a Sortino ratio of {metrics['sortino']:.2f} reflects {sortino_performance} downside risk management.",
 
                    f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f})," 

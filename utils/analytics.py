@@ -343,7 +343,6 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         
         market_log = market_log_rtn.reindex(ser.index).dropna()
         combined = pd.concat([ser, market_log], axis=1, join="inner").dropna()
-        # if combined.empty:
         if len(combined) < 60:
             continue
 
@@ -362,9 +361,11 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         drawdown = (cumulative - rolling_max) / rolling_max
         max_dd = drawdown.min()
 
-        var_95 = -np.percentile(stock_rtn, 5)
-        tail_losses = stock_rtn[stock_rtn <= -var_95]
+        var_cutoff = np.percentile(stock_rtn, 5)
+        var_95 = -var_cutoff
+        tail_losses = stock_rtn[stock_rtn <= var_cutoff]
         cvar_95 = -tail_losses.mean() if not tail_losses.empty else np.nan
+        
         records.append({"Ticker": t,
                         "Volatility (Annualized)": vol,
                         "Beta": beta,

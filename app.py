@@ -96,7 +96,7 @@ if st.session_state.generated:
 
     with tab2:
         from tabs.risk import risk_analysis
-        risk_analysis(metrics, price_df, valid_tickers, pf_returns)
+        risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table)
 
     with tab3:
         from tabs.fundamentals import fundamental_insights

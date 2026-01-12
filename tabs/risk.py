@@ -5,6 +5,7 @@ from utils.analytics import compute_stock_risk_metrics, compute_rolling_metrics
 from utils.charts import area_chart, scatter_plot, heatmap_chart, dual_axis_line_chart
 from utils.ui import beta_color, interpretation_box
 
+
 def metric_row(items):
         cols = st.columns(len(items))
         for col, (label, value, delta) in zip(cols, items):
@@ -13,7 +14,8 @@ def metric_row(items):
             else:
                 col.metric(label, value, delta)
 
-def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
+
+def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table):
         st.markdown("<h2 style='text-align:center; color:#7161ef;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
@@ -25,15 +27,10 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         risk_df = compute_stock_risk_metrics(price_df[valid_tickers], market_df = st.session_state.loaded_data["market_df"])
+        display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
 
+        st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
-            display_risk_df = risk_df[["Ticker", 
-                                       "Volatility (Annualized)", 
-                                       "Beta", 
-                                       "Max Drawdown", 
-                                       "VaR 95%", 
-                                       "CVaR 95%"]].copy()
-            st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
             st.dataframe(display_risk_df.style.format({"Volatility (Annualized)": "{:.2%}",
                                                        "Beta": "{:.2f}",
                                                        "Max Drawdown": "{:.2%}",
@@ -41,7 +38,6 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                                                        "CVaR 95%": "{:.2%}"}).map(beta_color, subset=["Beta"]), hide_index=True, width="stretch")
         else:
             st.info("Insufficient data for stock-wise risk metrics.")
-
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         st.markdown("<h3 style='color:#7161ef;'>Drawdown History (From Peak)</h3>", unsafe_allow_html=True)
@@ -53,16 +49,16 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             st.info("Insufficient returns data for drawdown chart.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
-        st.markdown("<h3 style='color:#7161ef;'>Risk–Return Positioning (Annualized)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Risk vs Return: Stock Positioning Map</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
             rr_df = pd.DataFrame({"Ticker": risk_df["Ticker"],
-                                  "Volatility": risk_df["Volatility (Annualized)"],
-                                  "Returns": [ser.mean() * 252 for ser in risk_df["Returns"]]})
-
+                                  "Risk (Annualized Volatility)": risk_df["Volatility (Annualized)"],
+                                  "Return (Annualized)": [ser.mean() * 252 for ser in risk_df["Returns"]]})
+            
             fig_rr = scatter_plot(df=rr_df,
-                                  x="Volatility",
-                                  y="Returns",
-                                  color=None,          
+                                  x="Risk (Annualized Volatility)",
+                                  y="Return (Annualized)",
+                                  color=None, 
                                   hover="Ticker",
                                   trendline=None,      
                                   title="",
@@ -70,7 +66,6 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             st.plotly_chart(fig_rr, width="stretch")
         else:
             st.info("Not enough data for Risk/Return scatter plot.")
-
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
         st.markdown("<h3 style='color:#7161ef;'>Correlation Matrix</h3>", unsafe_allow_html=True)
@@ -104,7 +99,19 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                 sharpe_performance = "inefficient"
             else:
                 sharpe_performance = "efficient"
-        
+        else:
+            sharpe_performance = "unavailable"
+
+        if metrics['sortino'] is not None:
+            if metrics['sortino'] < 0:
+                sortino_performance = "weak"
+            elif metrics['sortino'] < 1.0:
+                sortino_performance = "moderate"
+            else:
+                sortino_performance = "strong"
+        else:
+            sortino_performance = "unavailable"
+      
         vol = metrics['volatility'] * 100
         if metrics['volatility'] is not None:
             if vol <= 10:
@@ -113,21 +120,26 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
                 vol_performance = "moderate"
             else:
                 vol_performance = "high"
-
-        dd_performance = "contained" if abs(metrics['max_dd']) <= -20 else "significant"
-
-        corr_matrix = corr.values
-        upper_tri = corr_matrix[np.triu_indices_from(corr_matrix, k=1)]
-        avg_corr = np.nanmean(upper_tri)
-        if avg_corr is not None:
-            if avg_corr < 0.30:
-                corr_performance = "well diversified"
-            elif avg_corr < 0.60:
-                corr_performance = "moderately diversified"
+        else:
+            vol_performance = "unknown"
+        
+        stk_beta = risk_df[["Ticker", "Beta"]].dropna()
+        stk_weights = pf_summary_table[["Ticker", "Weights %"]].dropna()
+        beta_df = stk_beta.merge(stk_weights, on="Ticker", how="inner")
+        beta_df["weight"] = beta_df["Weights %"] / 100
+        pf_beta = (beta_df["weight"] * beta_df["Beta"]).sum()
+        if pf_beta is not None:
+            if pf_beta < 1:
+                beta_performance = "defensive"
+            elif pf_beta == 1:
+                beta_performance = "market-aligned"
             else:
-                corr_performance = "poorly diversified"
+                beta_performance = "aggressive"
+        else:
+            beta_performance = "unclassified"
 
-        display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
+        dd_performance = "contained" if abs(metrics['max_dd']) <= 0.20 else "significant"
+
         rank_df = display_risk_df.dropna()
         rank_df["vol_rank"] = rank_df["Volatility (Annualized)"].rank(ascending=True)
         rank_df["beta_rank"] = rank_df["Beta"].rank(ascending=True)
@@ -146,10 +158,37 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns):
             stable_stk = stable["Ticker"]
             risky_stk = risk["Ticker"]
 
-        summary = [f"{stable_stk} provides stability through lower volatility, beta, drawdown, and tail-risk measures, helping smooth overall portfolio fluctuations. In contrast, {risky_stk} contributes the highest risk, driven by elevated volatility, stronger market linkage, and deeper drawdowns",
-                   
-                   f"The portfolio exhibits {vol_performance} volatility, with a Sharpe ratio of {metrics['sharpe']:.2f}, indicating {sharpe_performance} risk-adjusted returns.", 
+        tail_stk = rank_df.loc[rank_df["CVaR 95%"].idxmax()]
+        tail_ticker = tail_stk["Ticker"]
+        tail_value_row = pf_summary_table.loc[pf_summary_table["Ticker"] == tail_ticker, "Share Value (₹)"]
+        tail_value = tail_value_row.iloc[0]
+        tail_var = tail_stk["VaR 95%"]
+        tail_cvar = tail_stk["CVaR 95%"]
+        var_value = tail_var * tail_value 
+        cvar_value = tail_cvar * tail_value
+        tail_ratio = tail_cvar / tail_var if tail_var != 0 else np.nan
 
-                   f"The maximum drawdown of {abs(metrics['max_dd']):.2%} suggests downside risk is {dd_performance}, while correlation analysis shows {corr_performance} across holdings.",]
-                           
+        if tail_ratio < 1.3:
+            tail_risk_desc = "tail losses remain relatively contained beyond the VaR threshold"
+        elif tail_ratio < 2.0:
+            tail_risk_desc = "losses deepen meaningfully during extreme downside events"
+        else:
+            tail_risk_desc = "the portfolio is exposed to fat-tailed risk, with severe losses during stress periods"
+
+        s_s_performance = "rewarded" if (metrics['sharpe'] >= 1 or metrics['sortino'] >= 1) else "only partially compensated"
+        overall = "active market exposure and elevated volatility" if beta_performance == "aggressive" and vol_performance == "high" else "market-aligned movements with measured volatility" if beta_performance == "market-aligned" else "defensive positioning with controlled volatility"
+
+
+        summary = [f"{stable_stk} emerges as the portfolio’s most stable position, ranking lowest across combined risk measures, thereby contributing to smoother overall portfolio behavior. " 
+                   f"In contrast, {risky_stk} ranks highest contributing the highest risk, driven by elevated volatility, stronger market linkage, and deeper drawdowns",
+                
+                   f"At the portfolio level, volatility is assessed as {vol_performance}, with a Sharpe ratio of {metrics['sharpe']:.2f} indicating overall risk-adjusted performance is {sharpe_performance}," 
+                   f"and a Sortino ratio of {metrics['sortino']:.2f} reflects {sortino_performance} downside risk management.",
+
+                   f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f})," 
+                   f"while CVaR increases to {tail_cvar:.2%} (around ₹{cvar_value:,.0f}) during extreme market conditions, indicating that {tail_risk_desc}.",
+
+                   f"Overall risk structure suggests that portfolio fluctuations are primarily driven by {overall}, while drawdown behavior remains {dd_performance}. " 
+                   f"Combined Sharpe and Sortino ratios suggest that portfolio's risk-taking has been {s_s_performance}, resulting in a {'balanced' if sharpe_performance == 'efficient' and sortino_performance == 'strong' else 'cautious'} overall risk profile."]
+                       
         interpretation_box("Risk Summary", summary)

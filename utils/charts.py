@@ -29,7 +29,7 @@ def area_chart(x, y, title=None, underwater=False):
     return fig
 
 
-def scatter_plot(df, x, y, color=None, size=None, title=None, hover=None, trendline=None, reference_line=False):
+def scatter_plot(df, x, y, color=None, size=None, title=None, hover=None, trendline=None, reference_line=False ):
     fig = px.scatter(df, x=x, y=y, hover_name=hover, color=color, size=size, template=COMMON_TEMPLATE, title=title or "", trendline=trendline, color_discrete_sequence=PALETTE,)
     fig.update_traces(mode="markers", marker=dict(size=12, opacity=0.85, line=dict(width=0.5, color="#ffffff")))
     fig.update_layout(margin=dict(t=60, b=60), showlegend=False)
@@ -55,7 +55,7 @@ def heatmap_chart(df, title=None):
 
 def dual_axis_line_chart(df, x, y1, y2, y1_name="Series 1", y2_name="Series 2", title=None):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df[x], y=df[y1], mode="lines", name=y1_name, line=dict(width=2, color=PALETTE[0]),))
+    fig.add_trace(go.Scatter(x=df[x], y=df[y1], mode="lines", name=y1_name, line=dict(width=1.5, color=PALETTE[0]), opacity=0.75))
     fig.add_trace(go.Scatter(x=df[x], y=df[y2], mode="lines", name=y2_name, yaxis="y2", line=dict(width=2, color=PALETTE[2]),))
     fig.update_layout(title=title or "", template=COMMON_TEMPLATE, xaxis=dict(title=x), yaxis=dict(title=y1_name), yaxis2=dict(title=y2_name, overlaying="y", side="right"), legend=dict(orientation="h", y=-0.2), margin=dict(t=60, b=60),)
     return fig

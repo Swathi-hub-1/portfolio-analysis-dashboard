@@ -27,10 +27,11 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         risk_df = compute_stock_risk_metrics(price_df[valid_tickers], market_df = st.session_state.loaded_data["market_df"])
-        display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
+        # display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
 
         st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
+            display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
             st.dataframe(display_risk_df.style.format({"Volatility (Annualized)": "{:.2%}",
                                                        "Beta": "{:.2f}",
                                                        "Max Drawdown": "{:.2%}",
@@ -139,7 +140,8 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
             beta_performance = "unclassified"
 
         dd_performance = "contained" if abs(metrics['max_dd']) <= 0.20 else "significant"
-
+        
+        display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
         rank_df = display_risk_df.dropna()
         rank_df["vol_rank"] = rank_df["Volatility (Annualized)"].rank(ascending=True)
         rank_df["beta_rank"] = rank_df["Beta"].rank(ascending=True)

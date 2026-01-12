@@ -127,7 +127,7 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
     missing = []
 
     try:
-        market_df = download_price_series("^CRSLDX", global_start, global_end)
+        market_df = download_price_series("^NSEI", global_start, global_end)
     except Exception:
         market_df = pd.DataFrame(columns=["High", "Low", "Close"])
 

@@ -12,19 +12,21 @@ def load_tickers(path: str = "Tickers.xlsx") -> pd.Series:
     try:
         df = pd.read_excel(path)
     except Exception:
-        return pd.DataFrame(columns=["Symbol", "Company Name"])
+        return pd.DataFrame(columns=["Symbol", "Company Name", "Sector", "Industry"])
 
     df = df.rename(columns=lambda c: c.strip())
-    expected = ["Symbol", "Company Name"]
+    expected = ["Symbol", "Company Name", "Sector", "Industry"]
     for col in expected:
         if col not in df.columns:
             df[col] = ""
 
     df["Symbol"] = df["Symbol"].astype(str).str.strip().str.upper()
     df["Company Name"] = df["Company Name"].astype(str).fillna("").str.strip()
+    df["Sector"] = df["Sector"].astype(str).fillna("Unknown").str.strip()
+    df["Industry"] = df["Industry"].astype(str).fillna("Unknown").str.strip()
     df = df[df["Symbol"] != ""].drop_duplicates(subset=["Symbol"])
     df = df.reset_index(drop=True)
-    return df[["Symbol", "Company Name"]]
+    return df[["Symbol", "Company Name", "Sector", "Industry"]]
 
 
 @st.cache_data(show_spinner=False)

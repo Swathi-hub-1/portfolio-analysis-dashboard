@@ -79,7 +79,7 @@ def header():
 
 def sidebar_config():
     st.sidebar.markdown(f"<h1 style='color:{PRIMARY}; text-align: center; width: 100%;'>Portfolio Input Panel</h1><hr style='border:0.5px solid {SECONDARY};'>", unsafe_allow_html=True)
-    
+
 
 def home_page():
     st.markdown(f"""

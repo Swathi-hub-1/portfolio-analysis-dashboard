@@ -113,11 +113,11 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                     ("Dividend Coverage", f"{coverage}", None)])
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Dividend Income Summary</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Dividend Income Summary</h3>", unsafe_allow_html=True)
         st.dataframe(div_df, hide_index=True, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Dividend Contribution by Stock</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Dividend Contribution by Stock</h3>", unsafe_allow_html=True)
         if not div_df.empty and div_df["Dividend Income(₹)"].sum() > 0:
             fig_income = pie_chart(div_df["Ticker"].tolist(), div_df["Dividend Income(₹)"].tolist(), title=None)
             st.plotly_chart(fig_income, width="stretch")
@@ -125,7 +125,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
             st.info("No dividend income to visualize for the selected holdings/date ranges.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Cumulative Dividend Income Trend</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Cumulative Dividend Income Trend</h3>", unsafe_allow_html=True)
         combined = []
         for t in valid_tickers:
             divs = div_dict.get(t)
@@ -147,7 +147,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
 
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        st.markdown("<h3 style=color:#7161ef;'>Dividend Metrics: DPS vs Yield vs Growth</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#7161ef;'>Dividend Metrics: DPS vs Yield vs Growth</h3>", unsafe_allow_html=True)
         fig_bar = bar_chart(div_df,
                             x="Ticker",
                             y="Last 12M Div (₹)",
@@ -155,7 +155,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                             show_text=True,
                             hover_col="Ticker",
                             title=None)
-        fig_bar.update_traces(texttemplate="%{text:.2f}%", textposition="outside")
+        fig_bar.update_layout(yaxis_tickformat=".1f", xaxis_tickangle=-25)
         st.plotly_chart(fig_bar, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         

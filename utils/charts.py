@@ -61,10 +61,15 @@ def dual_axis_line_chart(df, x, y1, y2, y1_name="Series 1", y2_name="Series 2", 
     return fig
 
 
-def bubble_chart(df, x, y, size, color=None, hover=None, title=None):
+def bubble_chart(df, x, y, size, color=None, hover=None, title=None, reference_line=False):
     fig = px.scatter(df, x=x, y=y, size=size, color=color, hover_name=hover, template=COMMON_TEMPLATE, title=title or "", size_max=60, color_discrete_sequence=PALETTE,)
     fig.update_traces(mode="markers", marker=dict(opacity=0.85))
     fig.update_layout(margin=dict(t=60, b=60))
+    if reference_line:
+        x_mean = df[x].mean()
+        y_mean = df[y].mean()
+        fig.add_vline(x=x_mean, line_dash="dash", line_width=1, line_color="#94a3b8")
+        fig.add_hline(y=y_mean, line_dash="dash", line_width=1, line_color="#94a3b8")
     return fig
 
 
@@ -82,13 +87,13 @@ def box_chart(df,x_col, y_col, title, hover_label_col=None, color_col=None):
     return fig
 
 
-def bar_chart(df, x, y, color=None, title=None, labels=None, show_text=False, hover_col=None, hover_title=None):
+def bar_chart(df, x, y, orientation=None, color=None, title=None, labels=None, show_text=False, hover_col=None, hover_title=None):
     hover_data = {}
     if hover_col:
         for col in hover_col:
             if col in df.columns:
                 hover_data[col] = True
-    fig = px.bar(df, x=x, y=y, color=color, labels=labels, text=y if show_text else None, template=COMMON_TEMPLATE, color_discrete_sequence=PALETTE, hover_data=hover_data if hover_data else None,)
+    fig = px.bar(df, x=x, y=y, orientation=orientation, color=color, labels=labels, text=y if show_text else None, template=COMMON_TEMPLATE, color_discrete_sequence=PALETTE, hover_data=hover_data if hover_data else None,)
     if show_text == True:
         fig.update_traces(texttemplate="%{y:.2f}%", textposition="outside")
     if hover_title:    

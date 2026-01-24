@@ -27,7 +27,6 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         risk_df = compute_stock_risk_metrics(price_df[valid_tickers], market_df = st.session_state.loaded_data["market_df"])
-        # display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
 
         st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
         if not risk_df.empty:

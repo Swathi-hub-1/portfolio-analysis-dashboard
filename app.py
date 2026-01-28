@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from utils.ui import apply_custom_css, header, sidebar_config, home_page
-from utils.data_fetch import load_tickers, fetch_all_data, get_market_news
+from utils.data_fetch import load_tickers, fetch_all_data
 from utils.analytics import portfolio_value_from_prices, compute_portfolio_metrics
 
 

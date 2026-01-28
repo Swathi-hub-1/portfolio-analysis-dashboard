@@ -70,11 +70,13 @@ def fetch_fundamentals(ticker: str) -> dict:
     try:
         t = yf.Ticker(ticker)
         income = t.income_stmt
+        income_q = t.quarterly_income_stmt
         balance = t.balance_sheet
         cashflow = t.cashflow
-        shares = t.get_shares_full()
-        shares_outstanding = shares[-1] if shares is not None and not shares.empty else None
+        shares_outstanding = t.get_shares_full()
+        
         return{"income": income,
+               "income_q": income_q,
                "balance": balance,
                "cashbflow": cashflow,
                "s_o": shares_outstanding}
@@ -177,23 +179,5 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
             "missing": missing}
 
 
-def get_market_news():
-    newsapi = NewsApiClient(api_key="4ef54c647d8248ba96dbaf12ccacc887")
-    data = newsapi.get_everything(q="Indian stock market OR Sensex OR Nifty", language="en", sort_by="publishedAt", page_size=5)
-    return data["articles"]
 
-
-def classify_news(article):
-    text = f"{article['title']} {article['description']}".lower()
-
-    if any(k in text for k in ["rbi", "inflation", "gdp", "interest rate", "repo"]):
-        return "Macro"
-
-    if any(k in text for k in ["nifty", "sensex", "bank nifty"]):
-        return "Index"
-
-    if any(k in text for k in ["it", "bank", "pharma", "auto", "fmcg"]):
-        return "Sector"
-
-    return "Corporate"
 

@@ -1,16 +1,8 @@
 import streamlit as st
 import pandas as pd
-from utils.analytics import safe_float
+from utils.helper import metric_row, safe_float
 from utils.charts import line_chart, pie_chart, bar_chart
 from utils.ui import interpretation_box
-
-def metric_row(items):
-        cols = st.columns(len(items))
-        for col, (label, value, delta) in zip(cols, items):
-            if delta is None:
-                col.metric(label, value)
-            else:
-                col.metric(label, value, delta)
 
 
 def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_price, shares):

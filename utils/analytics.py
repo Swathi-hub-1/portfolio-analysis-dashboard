@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import quantstats as qs
+from utils.helper import safe_float
 
 qs.extend_pandas()
 
@@ -94,15 +95,6 @@ def compute_portfolio_metrics(portfolio_value: pd.Series, buy_price: dict = None
         metrics["pf_gain_loss"] = pf_val
 
     return metrics
-
-
-def safe_float(x):
-    try:
-        if x is None:
-            return np.nan
-        return float(x)
-    except Exception:
-        return np.nan
 
 
 def compute_rsi(series: pd.Series, period: int = 14) -> pd.Series:

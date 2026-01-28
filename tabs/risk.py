@@ -2,17 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from utils.analytics import compute_stock_risk_metrics, compute_rolling_metrics
+from utils.helper import metric_row
 from utils.charts import area_chart, scatter_plot, heatmap_chart, dual_axis_line_chart
 from utils.ui import beta_color, interpretation_box
-
-
-def metric_row(items):
-        cols = st.columns(len(items))
-        for col, (label, value, delta) in zip(cols, items):
-            if delta is None:
-                col.metric(label, value)
-            else:
-                col.metric(label, value, delta)
 
 
 def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table):
@@ -186,7 +178,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
                    f"At the portfolio level, volatility is assessed as {vol_performance}, with a Sharpe ratio of {metrics['sharpe']:.2f} indicating overall risk-adjusted performance is {sharpe_performance}, " 
                    f"and a Sortino ratio of {metrics['sortino']:.2f} reflects {sortino_performance} downside risk management.",
 
-                   f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f})," 
+                   f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f}), " 
                    f"while CVaR increases to {tail_cvar:.2%} (around ₹{cvar_value:,.0f}) during extreme market conditions, indicating that {tail_risk_desc}.",
 
                    f"Overall risk structure suggests that portfolio fluctuations are primarily driven by {overall}, while drawdown behavior remains {dd_performance}. " 

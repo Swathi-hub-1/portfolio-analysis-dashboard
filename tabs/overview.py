@@ -2,18 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from utils.data_fetch import fetch_sector_industry
-from utils.analytics import compute_position_health, portfolio_unrealized_pnl, safe_float
+from utils.analytics import compute_position_health, portfolio_unrealized_pnl
+from utils.helper import metric_row, safe_float
 from utils.charts import pie_chart, bar_chart, line_chart
 from utils.ui import color_rsi_category, color_gain_loss, color_trend_class, interpretation_box 
-
-
-def metric_row(items):
-        cols = st.columns(len(items))
-        for col, (label, value, delta) in zip(cols, items):
-            if delta is None:
-                col.metric(label, value)
-            else:
-                col.metric(label, value, delta)
 
 
 def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict):

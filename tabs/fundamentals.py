@@ -1,80 +1,9 @@
 import streamlit as st
 import pandas as pd
-from utils.charts import bubble_chart, box_chart, bar_chart
 from utils.data_fetch import fetch_fundamentals
+from utils.helper import get_first_available, available_series, yoy_growth, cagr, safe_divide, safe_round, safe_subtract, metric_row, format_market_cap
+from utils.charts import bubble_chart, box_chart, bar_chart
 from utils.ui import interpretation_box
-
-def metric_row(items):
-        cols = st.columns(len(items))
-        for col, (label, value, delta) in zip(cols, items):
-            if delta is None:
-                col.metric(label, value)
-            else:
-                col.metric(label, value, delta)
-
-
-def get_first_available(df, possible_labels):
-    if df is None or df.empty:
-        return None
-
-    for label in possible_labels:
-        if label in df.index:
-            try:
-                val = df.loc[label].iloc[0]
-                return float(val) if pd.notna(val) else None
-            except Exception:
-                return None
-    return None
-
-
-def available_series(df, possible_labels):
-    if df is None or df.empty:
-        return None
-
-    for label in possible_labels:
-        if label in df.index:
-            try:
-                return df.loc[label]
-            except Exception:
-                return None
-    return None
-
-
-def format_market_cap(value):
-    if value in (None, 0) or pd.isna(value):
-        return "N/A"
-    units = [("T", 1e12), ("B", 1e9), ("M", 1e6), ("K", 1e3)]
-    for suffix, factor in units:
-        if value >= factor:
-            return f"₹{round(value / factor, 2)} {suffix}"
-    return str(value)
-
-
-def yoy_growth(series):
-    if series is None or len(series) < 2:
-        return None
-    latest, previous = series.iloc[-1], series.iloc[-2]
-    if previous == 0:
-        return None
-    return (latest / previous - 1) * 100
-
-
-def cagr(series, min_yrs=3 ):
-    if series is None or len(series) < min_yrs + 1:
-        return None, None
-    start = series.iloc[0]
-    end = series.iloc[-1]
-    years = len(series) - 1
-    if start <= 0 or years <= 0:
-        return None, None
-    cagr_y = ((end / start) ** (1 / years) - 1) * 100
-    return cagr_y, years
-
-
-def safe_divide(a, b):
-    if a is None or b is None or b==0:
-        return None
-    return a / b
 
 
 def fundamental_insights(valid_tickers, latest_price):
@@ -92,8 +21,9 @@ def fundamental_insights(valid_tickers, latest_price):
                 continue
              
             income = fs.get("income")
+            income_q = fs.get("income_q")
             balance = fs.get("balance")
-            share_outstanding = fs.get("s_o")
+            shares_outstanding = fs.get("s_o")
             price = latest_price.get(t)
 
             net_income = get_first_available(income,["Net Income",   
@@ -104,18 +34,6 @@ def fundamental_insights(valid_tickers, latest_price):
                                                   "Operating Revenue"])
 
             equity = get_first_available(balance,["Total Stockholder Equity",
-                                                  "Stockholders Equity",
-                                                  "Total Equity",
-                                                  "Total Equity Gross Minority Interest"])
-            
-            net_income_series = available_series(income,["Net Income",   
-                                                     "Net Income Common Stockholders",
-                                                     "Net Income Applicable To Common Shares"])
-
-            revenue_series = available_series(income,["Total Revenue",
-                                                  "Operating Revenue"])
-
-            equity_series = available_series(balance,["Total Stockholder Equity",
                                                   "Stockholders Equity",
                                                   "Total Equity",
                                                   "Total Equity Gross Minority Interest"])
@@ -138,27 +56,62 @@ def fundamental_insights(valid_tickers, latest_price):
             int_exp = get_first_available(income, ["Interest Expense"])
 
             total_asset = get_first_available(balance, ["Total Assets"])
+
+            net_income_series = available_series(income,["Net Income",   
+                                                         "Net Income Common Stockholders",
+                                                         "Net Income Applicable To Common Shares"])
+
+            revenue_series = available_series(income,["Total Revenue",
+                                                      "Operating Revenue"])
+
+            equity_series = available_series(balance,["Total Stockholder Equity",
+                                                      "Stockholders Equity",
+                                                      "Total Equity",
+                                                      "Total Equity Gross Minority Interest"])
             
             total_asset_series = available_series(balance, ["Total Assets"])
 
-            if any(v is None for v in [net_income, revenue, equity, share_outstanding, price]):
+            net_income_series_q = available_series(income_q,["Net Income"])
+
+            if any(v is None for v in [net_income, revenue, equity, shares_outstanding, price]):
                 continue
-            
+                        
             revenue_hist = income.loc["Total Revenue"].dropna().sort_index() if "Total Revenue" in income.index else None
             net_income_hist = income.loc["Net Income"].dropna().sort_index() if "Net Income" in income.index else None
+            ni_q = net_income_series_q.sort_index().dropna().tail(4)
+            ni_sum = ni_q.sum()
+            sh_os = shares_outstanding.sort_index()
+            sh_os.index = sh_os.index.tz_localize(None)
+            sh_os = sh_os.to_frame(name="shares")
+            start_d = ni_q.index.min()
+            end_d = ni_q.index.max()
 
+            share = sh_os.loc[start_d:end_d]
+
+            if len(share) == 1:
+                weighted_avg_shares = share.iloc[0, 0]
+            else:
+                share["next_date"] = share.index.to_series().shift(-1)
+                share.iloc[-1, share.columns.get_loc("next_date")] = end_d
+
+                share["days"] = (share["next_date"] - share.index).dt.days
+
+                weighted_avg_shares = (share["shares"] * share["days"]).sum() / share["days"].sum()
+
+            shares = shares_outstanding[-1] if shares_outstanding is not None and not shares_outstanding.empty else None
+            
             revenue_yoy = yoy_growth(revenue_hist)
             revenue_cagr, revenue_yrs = cagr(revenue_hist)
             ni_yoy = yoy_growth(net_income_hist)
             ni_cagr, ni_yrs = cagr(net_income_hist)
 
-            market_cap = price * share_outstanding
-            eps = safe_divide(net_income, share_outstanding) 
+            market_cap = price * shares
+            eps = safe_divide(ni_sum, weighted_avg_shares) 
             pe = safe_divide(price, eps)
-            book_value_per_share = safe_divide(equity, share_outstanding)
+            book_value_per_share = safe_divide(equity, shares)
             pb = safe_divide(price, book_value_per_share) 
 
-            cap_employed = equity + (total_debt - cash)
+            cap_employed = safe_subtract(total_asset, current_liability)
             roe = safe_divide(net_income, equity)
             roce = safe_divide(ebit, cap_employed)
             profit_margin = safe_divide(net_income, revenue)
@@ -166,28 +119,28 @@ def fundamental_insights(valid_tickers, latest_price):
 
             debt_equity = safe_divide(total_debt, equity) 
             current_ratio = safe_divide(current_asset, current_liability)
-            net_debt = total_debt - cash if cash is not None else total_debt
+            net_debt = safe_subtract(total_debt, cash)            
             interest_coverage = safe_divide(ebit, abs(int_exp))
 
             rows_1.append({"Symbol": t,
                         "Market Cap Display": format_market_cap(market_cap),
                         "Market Cap": market_cap,
-                        "Revenue YOY (%)": round(revenue_yoy, 2),
-                        f"Revenue CAGR ({revenue_yrs}Y)": round(revenue_cagr, 2) if revenue_cagr else None,
-                        "Net Income YOY (%)": round(ni_yoy, 2),
-                        f"Net Income CAGR ({ni_yrs}Y)": round(ni_cagr, 2) if ni_cagr else None,
-                        "ROE (%)": round(roe * 100, 2),
-                        "Profit Margin (%)": round(profit_margin * 100, 2),
-                        "ROA (%)": round(roa * 100, 2),
-                        "ROCE (%)": round(roce * 100, 2)})
+                        "Revenue YOY (%)": safe_round(revenue_yoy),
+                        f"Revenue CAGR ({revenue_yrs}Y)": safe_round(revenue_cagr) if revenue_cagr else None,
+                        "Net Income YOY (%)": safe_round(ni_yoy),
+                        f"Net Income CAGR ({ni_yrs}Y)": safe_round(ni_cagr) if ni_cagr else None,
+                        "ROE (%)": safe_round(roe, 100),
+                        "Profit Margin (%)": safe_round(profit_margin, 100),
+                        "ROA (%)": safe_round(roa, 100),
+                        "ROCE (%)": safe_round(roce, 100)})
             
             rows_2.append({"Symbol": t,
-                           "EPS (TTM)": round(eps, 2),
-                           "P/E Ratio": round(pe, 2) if pe else None,
-                           "P/B Ratio": round(pb, 2) if pb else None,
-                           "Debt / Equity": round(debt_equity, 2),
-                           "Current Ratio": current_ratio,
-                           "Interest Coverage": interest_coverage})
+                           "EPS (TTM)": safe_round(eps),
+                           "P/E Ratio": safe_round(pe) if pe else None,
+                           "P/B Ratio": safe_round(pb) if pb else None,
+                           "Debt / Equity": safe_round(debt_equity),
+                           "Current Ratio": safe_round(current_ratio),
+                           "Interest Coverage": safe_round(interest_coverage)})
             
             bs_strength.append({"Symbol": t,
                                 "Net Debt": format_market_cap(net_debt),
@@ -204,11 +157,11 @@ def fundamental_insights(valid_tickers, latest_price):
 
                 du_pont.append({"Symbol": t,
                                 "Year": yr.year,
-                                "Net Profit Margin (%)": round(margin * 100, 2),
-                                "Asset Turnover Ratio": round(asset_to, 2),
-                                "Equity Multplier": round(eq_multiplier, 2),
-                                "ROE (%)": round(roe_du * 100, 2),
-                                "ROA (%)": round(roa_du * 100, 2)})
+                                "Net Profit Margin (%)": safe_round(margin, 100),
+                                "Asset Turnover Ratio": safe_round(asset_to),
+                                "Equity Multplier": safe_round(eq_multiplier),
+                                "ROE (%)": safe_round(roe_du, 100),
+                                "ROA (%)": safe_round(roa_du, 100)})
   
         business_df = pd.DataFrame(rows_1)
         if business_df.empty:

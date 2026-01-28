@@ -115,7 +115,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
         else:
             vol_performance = "unknown"
         
-        stk_beta = risk_df[["Ticker", "Beta"]].dropna()
+        stk_beta = risk_df.reset_index()[["Ticker", "Beta"]].dropna()
         stk_weights = pf_summary_table[["Ticker", "Weights %"]].dropna()
         beta_df = stk_beta.merge(stk_weights, on="Ticker", how="inner")
         beta_df["weight"] = beta_df["Weights %"] / 100

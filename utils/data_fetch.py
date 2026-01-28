@@ -4,7 +4,6 @@ import streamlit as st
 from yahooquery import Ticker as yqt
 from dotenv import load_dotenv
 from typing import Tuple, Dict
-from newsapi import NewsApiClient
 
 load_dotenv() 
 

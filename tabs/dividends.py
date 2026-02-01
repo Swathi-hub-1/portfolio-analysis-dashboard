@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils.helper import metric_row, safe_float
+from utils.helper import metric_row, safe_float, safe_divide, safe_round, safe_margin
 from utils.charts import line_chart, pie_chart, bar_chart
 from utils.ui import interpretation_box
 
@@ -15,7 +15,6 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
         pf_income = 0
         total_projected_annual_income = 0
         
-
         for t in valid_tickers:
             divs = div_dict.get(t)
             if divs is None or divs.empty:
@@ -76,14 +75,17 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                 div_cagr = None
             
             buy_p = buy_price.get(t) or 0.0
-            yoc = (last_year_div / buy_p) * 100 if buy_p else 0.0
+            yoc = safe_margin(last_year_div, buy_p)
+            current_yield = safe_margin(last_year_div, latest_price.get(t))
+
             stk_income = float(div_since_buy) * float(shares.get(t, 0))
             pf_income += stk_income
+
             projected_annual_income = last_year_div * shares.get(t, 0)
             total_projected_annual_income += projected_annual_income
-            forward_portfolio_yield = (total_projected_annual_income / total_value) if total_value else 0.0
-            current_yield = (last_year_div / latest_price.get(t)) * 100 if latest_price.get(t) else 0.0
-            actual_current_yield = (pf_income / total_value) if total_value else 0.0
+            
+            forward_portfolio_yield = safe_divide(total_projected_annual_income, total_value)
+            actual_current_yield = safe_divide(pf_income, total_value)
             
             dividend_payers = sum(1 for t in valid_tickers if not div_dict.get(t).empty)
             coverage = f"{dividend_payers} / {len(valid_tickers)}"
@@ -92,11 +94,11 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                              "Shares": shares.get(t, 0),
                              "Ex-Date": last_ex_dividend.strftime("%b %d, %Y") if last_ex_dividend else "-",
                              "Last 12M Div (₹)": float(last_year_div),
-                             "Dividend Income(₹)": round(stk_income, 2),
-                             "YOC (%)": round(yoc, 2),
-                             "Current Yield (%)": round(current_yield, 2),
-                             "Projected Div (₹)": round(projected_annual_income, 2),
-                             "Dividend CAGR (%)": round(div_cagr, 2) if div_cagr else None,})
+                             "Dividend Income(₹)": safe_round(stk_income),
+                             "YOC (%)": yoc,
+                             "Current Yield (%)": current_yield,
+                             "Projected Div (₹)": safe_round(projected_annual_income),
+                             "Dividend CAGR (%)": safe_round(div_cagr),})
         div_df = pd.DataFrame(div_rows)
 
         metric_row([("Total Dividend Income", f"₹{pf_income:,.2f}", None),

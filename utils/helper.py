@@ -59,12 +59,12 @@ def yoy_growth(series):
 
 def cagr(series, min_yrs=3 ):
     if series is None or len(series) < min_yrs + 1:
-        return None, None
+        return np.nan, min_yrs
     start = series.iloc[0]
     end = series.iloc[-1]
     years = len(series) - 1
     if start <= 0 or years <= 0:
-        return None, None
+        return np.nan, years
     cagr_y = ((end / start) ** (1 / years) - 1) * 100
     return cagr_y, years
 
@@ -93,3 +93,9 @@ def safe_subtract(a, b):
     if a is None or b is None:
         return None
     return a - b
+
+
+def safe_margin(n, d):
+    if d == 0 or n is None or d is None:
+        return None
+    return round((n / d) * 100, 2)

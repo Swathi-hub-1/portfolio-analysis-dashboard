@@ -83,49 +83,77 @@ def sidebar_config():
 
 def home_page():
     st.markdown(f"""
-                <div style='background:rgba(149,127,239,0.1); border:1px solid rgba(149,127,239,0.3); border-radius:12px; padding:25px 30px; margin-top:40px;'>
-                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px'>
-                        About This Dashboard
-                    </h4>
-                     <p style="font-size:15px; line-height:1.6; margin-top:10px;">
-                        This dashboard is built to make equity analysis easy to understand, even for beginners, 
-                        while still offering the depth needed for serious portfolio evaluation. It takes real stock 
-                        market data and converts it into clean, visual insights — helping you track your 
-                        portfolio’s performance, understand risk, explore fundamental ratios, and review 
-                        dividend growth in a structured, intuitive layout.
-                        <br><br>
-                        By combining simplicity with analytical strength, the dashboard supports both learning 
-                        and professional-style analysis. Whether you’re exploring how markets work or 
-                        reviewing your investments with more detail, the interface adapts to your pace and 
-                        gives you clarity through charts, summaries, and real-time data.
+                <div style='background:linear-gradient(135deg, rgba(113,97,239,0.12), rgba(149,127,239,0.05)); border:1px solid rgba(149,127,239,0.35); border-radius:18px; padding:38px 42px; margin-top:35px;'>
+                    <h2 style='color:{PRIMARY}; font-weight:800; margin-bottom:8px'>
+                        Portfolio Analytics Dashboard
+                    </h2>
+                     <p style="font-size:16px; opacity:0.9; max-width:900px;">
+                        An education-focused equity portfolio analytics dashboard designed to support learning and research.
+                        It helps users understand how publicly available market data is translated into portfolio performance,
+                        risk indicators, and fundamental metrics through structured analysis and clear visualizations.
                     </p>
-                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
-                        How to use
-                    </h4>
-                    <ul style="font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
-                        Use the sidebar on the left to begin.
-                        <li><b>Add Tickers</b> : Search and select the stocks you own.</li>
-                        <li><b>Select Date Range</b> – Choose the period during which you held each stock.</li>
-                        <li><b>Enter Shares</b> – Specify how many units you hold for each stock.</li>
-                        <li><b>Click Generate Analysis</b> – View performance, risk, fundamentals & dividends.</li>
+                    <hr style='margin:26px 0; border-color:rgba(149,127,239,0.3);' />
+                    <h3 style='color:{PRIMARY}; font-weight:700; margin-bottom:18px;'>
+                        What This Dashboard Delivers
+                    </h3>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;">
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
+                            <b>📈 Portfolio Performance</b>
+                            <p style="font-size:14px; margin-top:6px;">
+                                Returns, CAGR, allocation, cost basis, and historical price trends.
+                            </p>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
+                            <b>⚠️ Risk Analytics</b>
+                            <p style="font-size:14px; margin-top:6px;">
+                                Volatility, drawdowns, beta, Sharpe & Sortino ratios with visual context.
+                            </p>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
+                            <b>🏦 Fundamental Insights</b>
+                            <p style="font-size:14px; margin-top:6px;">
+                                Valuation, profitability, quality metrics with structured interpretation.
+                            </p>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
+                            <b>💸 Dividend Intelligence</b>
+                            <p style="font-size:14px; margin-top:6px;">
+                                Yield, income tracking, and growth trends.
+                            </p>
+                        </div>
+                    </div>
+                    <hr style="margin:30px 0; border-color:rgba(149,127,239,0.3);" />
+                    <h3 style='color:{PRIMARY}; font-weight:700; margin-bottom:14px;'>
+                        How to Get Started
+                    </h3>
+                    <ol style="font-size:15px; line-height:1.8; padding-left:20px;">
+                        <li>Add your stocks using the search panel.</li>
+                        <li>Select holding period and quantity for each stock.</li>
+                        <li>Click <b>Generate Analysis</b> to unlock insights.</li>
+                        <li>Explore dashboards, charts, and downloadable reports.</li>
+                    </ol>
+                    <hr style="margin:30px 0; border-color:rgba(149,127,239,0.3);" />
+                    <h3 style="color:{PRIMARY}; font-weight:700; margin-bottom:12px;">
+                        Built For
+                    </h3>
+                    <ul style="font-size:15px; line-height:1.7; padding-left:20px;">
+                        <li>📚 Students learning equity analysis and portfolio management</li>
+                        <li>📊 Aspiring analysts building real-world project portfolios</li>
+                        <li>💼 Investors seeking structured performance and risk evaluation</li>
                     </ul>
-                    <h4 style='font-size:20px; font-weight:700; margin-top:25px; margin-bottom:10px;'>
-                        What You Can Explore
-                    </h4>
-                    <ul style="font-size:15px; line-height:1.7; padding-left:20px; margin-top:15px;">
-                        <li><b>Portfolio Performance</b> – Track returns, allocation, cost basis, and price movement trends.</li>
-                        <li><b>Risk Analysis</b> – Understand volatility, drawdowns, beta, Sharpe ratio, and other risk metrics.</li>
-                        <li><b>Fundamental Strength</b> – Explore valuation ratios, profitability metrics, quality factors, and sector comparisons.</li>
-                        <li><b>Dividend Insights</b> – Review yield, payout patterns, 5-year CAGR, stability, and income projections.</li>
-                        <li><b>Automation Ready</b> – Export your analysis to a professional Excel report or QuantStats report in seconds.</li>
-                    </ul>
+                    <hr style="margin:22px 0; border-color:rgba(149,127,239,0.25);" />
+                    <p style="font-size:13.5px; line-height:1.6; opacity:0.85;">
+                        <b>Disclaimer:</b> This dashboard is intended solely for educational and analytical purposes. 
+                        Market data is sourced from publicly available free APIs and may be delayed, incomplete, or differ 
+                        from official exchange data. This tool does not constitute investment advice.
+                    </p>
                 </div>""",unsafe_allow_html=True)
     
     st.markdown(f"""
-                <div style='text-align:center; margin-top:50px; padding:18px 0; opacity:1.1; color:{SECONDARY}; font-size:13px; border-top:1px solid rgba(0,180,216,0.18);'>
+                <div style='text-align:center; margin-top:45px; padding:18px 0; opacity:1.1; color:{SECONDARY}; font-size:13px; border-top:1px solid rgba(149,127,239,0.25);'>
                     2025 • Portfolio Analytics Dashboard  
                     <br>
-                    Built for learning, research, and informed investing.
+                    Designed for learning, analysis, and professional growth.
                 </div>""", unsafe_allow_html=True)
     
 

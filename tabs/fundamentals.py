@@ -231,9 +231,9 @@ def fundamental_insights(valid_tickers, latest_price):
                            "Market Cap Display": format_market_cap(market_cap),
                            "Market Cap": market_cap,
                            "Revenue YOY (%)": safe_round(revenue_yoy),
-                          f"Revenue CAGR ({revenue_yrs}Y)": safe_round(revenue_cagr) if revenue_cagr else None,
+                          f"Revenue CAGR ({revenue_yrs}Y)": safe_round(revenue_cagr),
                            "Net Income YOY (%)": safe_round(ni_yoy),
-                          f"Net Income CAGR ({ni_yrs}Y)": safe_round(ni_cagr) if ni_cagr else None,
+                          f"Net Income CAGR ({ni_yrs}Y)": safe_round(ni_cagr),
                            "ROE (%)": roe,
                            "Profit Margin (%)": profit_margin,
                            "ROA (%)": roa,
@@ -323,7 +323,7 @@ def fundamental_insights(valid_tickers, latest_price):
         st.markdown("<h3 style='color:#7161ef;'>DuPont Analysis</h3>", unsafe_allow_html=True)
         dupont_df = pd.DataFrame(du_pont)
         dupont_df = dupont_df.sort_values("Year").reset_index(drop=True)
-        view_mode = st.segmented_control("", options=valid_tickers, selection_mode="single", default=valid_tickers[0], label_visibility="collapsed", key="view_mode")
+        view_mode = st.segmented_control("Select stock", options=valid_tickers, selection_mode="single", default=valid_tickers[0], label_visibility="collapsed", key="view_mode")
         if view_mode:
             dupont_view = dupont_df[dupont_df["Symbol"] == view_mode]
         else:
@@ -400,7 +400,7 @@ def fundamental_insights(valid_tickers, latest_price):
             st.plotly_chart(fig, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)                    
   
-        view_mode_summary = st.segmented_control("", options=valid_tickers, selection_mode="single", default=valid_tickers[0], label_visibility="collapsed", key="view_mode_summary")
+        view_mode_summary = st.segmented_control("Select stock for summary", options=valid_tickers, selection_mode="single", default=valid_tickers[0], label_visibility="collapsed", key="view_mode_summary")
         summary = summary.get(view_mode_summary, [])
             
         interpretation_box(f"Fundamental Strength Summary - {view_mode_summary}", summary)

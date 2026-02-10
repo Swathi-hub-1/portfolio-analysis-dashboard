@@ -83,6 +83,7 @@ def safe_divide(a, b):
         return None
     return a / b
 
+
 def safe_round(value, multiplier=1, decimal=2):
     if value is None:
         return None
@@ -99,3 +100,9 @@ def safe_margin(n, d):
     if d == 0 or n is None or d is None:
         return None
     return round((n / d) * 100, 2)
+
+
+def safe_multiple(a, b):
+    if a is None or b is None:
+        return None
+    return a * b

@@ -151,7 +151,7 @@ def home_page():
     
     st.markdown(f"""
                 <div style='text-align:center; margin-top:45px; padding:18px 0; opacity:1.1; color:{SECONDARY}; font-size:13px; border-top:1px solid rgba(149,127,239,0.25);'>
-                    2025 • Portfolio Analytics Dashboard  
+                    2026 • Portfolio Analytics Dashboard  
                     <br>
                     Designed for learning, analysis, and professional growth.
                 </div>""", unsafe_allow_html=True)

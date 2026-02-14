@@ -7,7 +7,7 @@ from utils.charts import area_chart, scatter_plot, heatmap_chart, dual_axis_line
 from utils.ui import beta_color, interpretation_box
 
 
-def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table):
+def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
         st.markdown("<h2 style='text-align:center; color:#7161ef;'>Risk & Volatility Analytics</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
         
@@ -50,7 +50,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
             fig_rr = scatter_plot(df=rr_df,
                                   x="Risk (Annualized Volatility)",
                                   y="Return (Annualized)",
-                                  color=None, 
+                                  color="Ticker", 
                                   hover="Ticker",
                                   trendline=None,      
                                   title="",
@@ -116,7 +116,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
             vol_performance = "unknown"
         
         stk_beta = risk_df[["Ticker", "Beta"]].dropna()
-        stk_weights = pf_summary_table[["Ticker", "Weights %"]].dropna()
+        stk_weights = overview_df[["Ticker", "Weights %"]].dropna()
         beta_df = stk_beta.merge(stk_weights, on="Ticker", how="inner")
         beta_df["weight"] = beta_df["Weights %"] / 100
         pf_beta = (beta_df["weight"] * beta_df["Beta"]).sum()
@@ -151,15 +151,16 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
             stable_stk = stable["Ticker"]
             risky_stk = risk["Ticker"]
 
-        tail_stk = rank_df.loc[rank_df["CVaR 95%"].idxmax()]
-        tail_ticker = tail_stk["Ticker"]
-        tail_value_row = pf_summary_table.loc[pf_summary_table["Ticker"] == tail_ticker, "Share Value (₹)"]
-        tail_value = tail_value_row.iloc[0]
-        tail_var = tail_stk["VaR 95%"]
-        tail_cvar = tail_stk["CVaR 95%"]
-        var_value = tail_var * tail_value 
-        cvar_value = tail_cvar * tail_value
-        tail_ratio = tail_cvar / tail_var if tail_var != 0 else np.nan
+        if not rank_df.empty:
+            tail_stk = rank_df.loc[rank_df["CVaR 95%"].idxmax()]
+            tail_ticker = tail_stk["Ticker"]
+            tail_value_row = overview_df.loc[overview_df["Ticker"] == tail_ticker, "Share Value (₹)"]
+            tail_value = tail_value_row.iloc[0]
+            tail_var = tail_stk["VaR 95%"]
+            tail_cvar = tail_stk["CVaR 95%"]
+            var_value = tail_var * tail_value 
+            cvar_value = tail_cvar * tail_value
+            tail_ratio = tail_cvar / tail_var if tail_var != 0 else np.nan
 
         if tail_ratio < 1.3:
             tail_risk_desc = "tail losses remain relatively contained beyond the VaR threshold"
@@ -185,3 +186,5 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table
                    f"Combined Sharpe and Sortino ratios suggest that portfolio's risk-taking has been {s_s_performance}, resulting in a {'balanced' if sharpe_performance == 'efficient' and sortino_performance == 'strong' else 'cautious'} overall risk profile."]
                        
         interpretation_box("Risk Summary", summary)
+        risk_analysis_df = risk_df.drop(columns=["Returns"], errors="ignore")
+        return risk_analysis_df

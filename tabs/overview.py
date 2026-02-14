@@ -248,4 +248,5 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
  
         interpretation_box("Portfolio Overview Summary", summary)
 
-        return pf_summary_table
+        overview_df = pf_summary_table.merge(display_df, on="Ticker", how="inner")
+        return overview_df

@@ -92,11 +92,11 @@ if st.session_state.generated:
 
     with tab1:
         from tabs.overview import overview
-        pf_summary_table = overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict)
+        overview_df = overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict)
 
     with tab2:
         from tabs.risk import risk_analysis
-        risk_analysis(metrics, price_df, valid_tickers, pf_returns, pf_summary_table)
+        risk_analysis_df = risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df)
 
     with tab3:
         from tabs.fundamentals import fundamental_insights
@@ -108,5 +108,5 @@ if st.session_state.generated:
 
     with tab5:
         from tabs.reports import report
-        report(pf_summary_table, fundamentals_df, div_df, pf_returns)
+        report(overview_df, risk_analysis_df, fundamentals_df, div_df, pf_returns, metrics)
 

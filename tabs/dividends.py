@@ -11,6 +11,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         div_rows = []
+        max_cagr_yr = 0
         share_values = {t: safe_float(latest_price.get(t)) * float(shares.get(t, 0)) for t in valid_tickers}
         total_value = float(sum(share_values.values())) if share_values else 0.0
         pf_income = 0
@@ -46,6 +47,8 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                 div_annual.index = div_annual.index.year
                 div_hist = div_annual.tail(6)
                 div_cagr, div_yr = cagr(div_hist)
+                if div_yr and div_yr > max_cagr_yr:
+                    max_cagr_yr = div_yr
 
                 div_df = divs.to_frame("Dividend")
                 div_df["FY"] = div_df.index.to_period("Y-MAR")
@@ -56,13 +59,9 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                 div_since_buy = 0.0
                 last_year_div = 0.0
                 div_cagr = 0.0
+                div_yr = 0
                 fy_div = None
             
-            # div_df = divs.to_frame("Dividend")
-            # div_df["FY"] = div_df.index.to_period("Y-MAR")
-            # fy_div = div_df.groupby("FY")["Dividend"].sum()
-
-            # fy_div = fy_div.iloc[-2]
             s_o = shares_outstanding[-1] if shares_outstanding is not None and not shares_outstanding.empty else None
             div_paid = safe_multiple(fy_div, s_o)
 
@@ -98,10 +97,15 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                              "Dividend Income(₹)": safe_round(stk_income),
                              "YOC (%)": yoc,
                              "Dividend Yield (%)": div_yield,
-                             "Payout Ratio (%)": safe_round(payout, 100) if payout else "-",
-                             "Retention Ratio (%)": safe_round(retention, 100) if retention else "-",
-                             f"Dividend CAGR ({div_yr}Y)": safe_round(div_cagr) ,})
+                             "Payout Ratio": safe_round(payout, 100) if payout else "-",
+                             "Retention Ratio": safe_round(retention, 100) if retention else "-",
+                             "Dividend CAGR": safe_round(div_cagr),})
+            
         div_df = pd.DataFrame(div_rows)
+        if max_cagr_yr > 0:
+            div_df.rename(columns={"Dividend CAGR": f"Dividend CAGR ({max_cagr_yr}Y)"}, inplace=True)
+        else:
+            div_df.rename(columns={"Dividend CAGR": "Dividend CAGR"}, inplace=True)
 
         metric_row([("Total Dividend Income", f"₹{pf_income:,.2f}", None),
                     ("Portfolio Yield", f"{actual_current_yield:.2%}", None),
@@ -147,7 +151,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
         st.markdown("<h3 style='color:#7161ef;'>Dividend Yield vs Growth — Portfolio Map</h3>", unsafe_allow_html=True)
         fig = bubble_chart(df=div_df,
                             x="Dividend Yield (%)",
-                            y=f"Dividend CAGR ({div_yr}Y)",
+                            y=f"Dividend CAGR ({max_cagr_yr}Y)",
                             size="Dividend Income(₹)",
                             color="Ticker", 
                             hover="Ticker",
@@ -156,16 +160,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
         st.plotly_chart(fig, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        
         if not div_df.empty:
-            avg_cagr = div_df[f"Dividend CAGR ({div_yr}Y)"].dropna().mean() if not div_df[f"Dividend CAGR ({div_yr}Y)"].isna().all() else 0
-            if avg_cagr > 10:
-                trend_label = "rapidly growing"
-            elif avg_cagr > 2:
-                trend_label = "stable and growing"
-            else:
-                trend_label = "uneven or stagnant"
-
             yield_pct = actual_current_yield * 100
             if yield_pct > 4:
                 orientation_label = "income-oriented"

@@ -53,7 +53,10 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                 div_df = divs.to_frame("Dividend")
                 div_df["FY"] = div_df.index.to_period("Y-MAR")
                 fy_div = div_df.groupby("FY")["Dividend"].sum()
-                fy_div = fy_div.iloc[-2]
+                if len(fy_div) >= 2:
+                    fy_div = fy_div.iloc[-2]
+                elif len(fy_div) == 1:
+                    fy_div = fy_div.iloc[-1]
             
             else:
                 div_since_buy = 0.0
@@ -66,7 +69,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
             div_paid = safe_multiple(fy_div, s_o)
 
             net_income = income.loc["Net Income"].dropna().sort_index()
-            fy_ni = net_income.iloc[-1]
+            fy_ni = net_income.iloc[-1] if not net_income.empty else None
 
             payout = safe_divide(div_paid, fy_ni)
             retention = safe_subtract(1, payout)

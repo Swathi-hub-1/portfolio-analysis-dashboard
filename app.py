@@ -36,8 +36,11 @@ if not tickers_df.empty:
         else:
             st.sidebar.info("No matches found.")
 
-portfolio = st.sidebar.multiselect("Selected Tickers:", options=st.session_state.selected_tickers, default=st.session_state.selected_tickers)
-st.session_state.selected_tickers = portfolio
+portfolio = st.sidebar.multiselect("Selected Tickers:", options=tickers_df["Symbol"].tolist(), default=st.session_state.selected_tickers)
+
+if set(portfolio) != set(st.session_state.selected_tickers):
+    st.session_state.selected_tickers = portfolio
+    st.rerun()
 
 if not portfolio:
     home_page()

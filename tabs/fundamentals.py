@@ -78,16 +78,25 @@ def fundamental_insights(valid_tickers, latest_price):
                         
             revenue_hist = income.loc["Total Revenue"].dropna().sort_index() if "Total Revenue" in income.index else None
             net_income_hist = income.loc["Net Income"].dropna().sort_index() if "Net Income" in income.index else None
-            ni_q = net_income_series_q.sort_index().dropna().rolling(4) 
-            # if "Net Income" in net_income_series_q.index else None
-            ni_sum = ni_q.sum() 
-            # if ni_q else None
+            
             sh_os = shares_outstanding.sort_index()
             sh_os.index = sh_os.index.tz_localize(None)
             sh_os = sh_os.to_frame(name="shares")
-            ni_q_sh = net_income_series_q.sort_index().dropna().tail(4)
-            start_d = ni_q_sh.index.min()
-            end_d = ni_q_sh.index.max()
+
+            ni_q = None
+            ni_sum = None
+            ni_q_sh = None
+            if net_income_series_q is not None and not net_income_series_q.empty:
+                ni_q = net_income_series_q.sort_index().dropna().rolling(4) 
+                ni_q_sh = net_income_series_q.sort_index().dropna().tail(4)
+                ni_sum = ni_q.sum() 
+
+            if ni_q_sh is not None and len(ni_q_sh) > 0:
+                start_d = ni_q_sh.index.min()
+                end_d = ni_q_sh.index.max()
+            else:
+                start_d = None
+                end_d = None
 
             share = sh_os.loc[start_d:end_d]
 
@@ -109,14 +118,14 @@ def fundamental_insights(valid_tickers, latest_price):
             ni_cagr, ni_yrs = cagr(net_income_hist)
 
             market_cap = price * shares
-
-            # if ni_sum is not None and not ni_sum.empty:
-            eps = safe_divide(ni_sum.iloc[-1], weighted_avg_shares)
-            eps_series = safe_divide(ni_sum, weighted_avg_shares)
+            
+            if ni_sum is not None and not ni_sum.empty and weighted_avg_shares:
+                eps = safe_divide(ni_sum.iloc[-1], weighted_avg_shares)
+                eps_series = safe_divide(ni_sum, weighted_avg_shares)
+            else:
+                eps = None
+                eps_series = None
             eps_yoy = yoy_growth(eps_series)
-            # else:
-            #     eps = None
-            #     eps_yoy = None
 
             pe = safe_divide(price, eps)
             book_value_per_share = safe_divide(equity, shares)
@@ -132,7 +141,7 @@ def fundamental_insights(valid_tickers, latest_price):
             debt_equity = safe_divide(total_debt, equity) 
             current_ratio = safe_divide(current_asset, current_liability)
             net_debt = safe_subtract(total_debt, cash)            
-            interest_coverage = safe_divide(ebit, abs(int_exp))
+            interest_coverage = safe_divide(ebit, abs(int_exp)) if int_exp else None
 
             if revenue_yoy is not None:
                 if revenue_yoy > 10:
@@ -260,6 +269,10 @@ def fundamental_insights(valid_tickers, latest_price):
                                 "Debt / Equity": safe_round(debt_equity),
                                 "Interest Coverage": interest_coverage})
             
+            pe_display = f"{pe:.2f}x" if pe is not None else "-"
+            pb_display = f"{pb:.2f}x" if pb is not None else "-"
+
+            
             summary[t] = [f"{t} exhibits {growth_strength} business expansion, with revenue growth of {safe_round(revenue_yoy)}% {ni_relation} net income growth "
                           f"of {safe_round(ni_yoy)}% and {eps_relation} EPS growth of {safe_round(eps_yoy)}%, indicating {growth_quality}.",
                                 
@@ -272,7 +285,7 @@ def fundamental_insights(valid_tickers, latest_price):
                           f"The balance sheet reflects {profile} leverage, with a debt-to-equity ratio of {safe_round(debt_equity)}x and interest coverage of "
                           f"{safe_round(interest_coverage)}x, while a current ratio of {safe_round(current_ratio)}x indicates {liquidity} financial flexibility.",
                                 
-                          f"At current levels, the stock trades at {pe:.2f}x earnings and {pb:.2f}x book value, "
+                          f"At current levels, the stock trades at {pe_display} earnings and {pb_display} book value, "
                           f"which appears {view} given its return profile, as reflected by an ROE of {roe}%."]
         
             years = (net_income_series.index.intersection(revenue_series.index).intersection(equity_series.index).intersection(total_asset_series.index))

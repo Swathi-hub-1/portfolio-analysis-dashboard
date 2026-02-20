@@ -100,16 +100,22 @@ def fundamental_insights(valid_tickers, latest_price):
 
             share = sh_os.loc[start_d:end_d]
 
-            if len(share) == 1:
+            if share.empty:
+                weighted_avg_shares = None
+            elif len(share) == 1:
                 weighted_avg_shares = share.iloc[0, 0]
             else:
+                share = share.copy()
                 share["next_date"] = share.index.to_series().shift(-1)
                 share.iloc[-1, share.columns.get_loc("next_date")] = end_d
 
                 share["days"] = (share["next_date"] - share.index).dt.days
 
-                weighted_avg_shares = (share["shares"] * share["days"]).sum() / share["days"].sum()
-
+                if share["days"].sum() > 0:
+                    weighted_avg_shares = (share["shares"] * share["days"]).sum() / share["days"].sum()
+                else:
+                    weighted_avg_shares = None
+                    
             shares = shares_outstanding[-1] if shares_outstanding is not None and not shares_outstanding.empty else None
             
             revenue_yoy = yoy_growth(revenue_hist)

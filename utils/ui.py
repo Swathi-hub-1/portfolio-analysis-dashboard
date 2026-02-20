@@ -1,9 +1,5 @@
 import streamlit as st
 
-# ACCENT = '#957fef'
-# ACCENT_2 = '#7161ef'
-# TEXT = '#e5e7eb'
-
 PRIMARY = "#7161ef"
 SECONDARY = "#957fef"
 TEXT = "var(--text-color)"

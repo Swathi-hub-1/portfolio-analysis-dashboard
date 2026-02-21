@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from utils.data_fetch import fetch_fundamentals
-from utils.helper import metric_row, safe_float, safe_divide, safe_round, safe_margin, cagr, safe_subtract, safe_multiple
+from utils.helper import get_first_available, available_series, metric_row, safe_float, safe_divide, safe_round, safe_margin, cagr, safe_subtract, safe_multiple
 from utils.charts import line_chart, pie_chart, bubble_chart
 from utils.ui import interpretation_box
 
@@ -67,11 +67,18 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
             
             s_o = shares_outstanding[-1] if shares_outstanding is not None and not shares_outstanding.empty else None
             div_paid = safe_multiple(fy_div, s_o)
+            
+            net_income_series = available_series(income,["Net Income",   
+                                                         "Net Income Common Stockholders",
+                                                         "Net Income Applicable To Common Shares"])
+            
+            if net_income_series is not None and not net_income_series.empty:
+                net_income = income.loc["Net Income"].dropna().sort_index()
+                fy_ni = net_income.iloc[-1] 
+            else:
+                fy_ni = None
 
-            net_income = income.loc["Net Income"].dropna().sort_index()
-            fy_ni = net_income.iloc[-1] if not net_income.empty else None
-
-            payout = safe_divide(div_paid, fy_ni)
+            payout = safe_divide(div_paid, fy_ni) if fy_ni else None
             retention = safe_subtract(1, payout)
 
             last_ex_dividend = divs.index[-1].date() if divs is not None and not divs.empty else None

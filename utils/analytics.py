@@ -335,7 +335,7 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
         
         market_log = market_log_rtn.reindex(ser.index).dropna()
         combined = pd.concat([ser, market_log], axis=1, join="inner").dropna()
-        if len(combined) < 60:
+        if len(combined) < 50:
             continue
 
         stock_rtn = combined.iloc[:, 0]

@@ -51,6 +51,7 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                     max_cagr_yr = div_yr
 
                 div_df = divs.to_frame("Dividend")
+                div_df.index = div_df.index.tz_localize(None)
                 div_df["FY"] = div_df.index.to_period("Y-MAR")
                 fy_div = div_df.groupby("FY")["Dividend"].sum()
                 if len(fy_div) >= 2:
@@ -107,8 +108,8 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
                              "Dividend Income(₹)": safe_round(stk_income),
                              "YOC (%)": yoc,
                              "Dividend Yield (%)": div_yield,
-                             "Payout Ratio": safe_round(payout, 100) if payout else "-",
-                             "Retention Ratio": safe_round(retention, 100) if retention else "-",
+                             "Payout Ratio": safe_round(payout, 100) if payout is not None else None,
+                             "Retention Ratio": safe_round(retention, 100) if retention is not None else None,
                              "Dividend CAGR": safe_round(div_cagr),})
             
         div_df = pd.DataFrame(div_rows)

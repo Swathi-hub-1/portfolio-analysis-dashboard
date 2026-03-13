@@ -79,3 +79,4 @@ wcwidth==0.2.14
 websockets==15.0.1
 yahooquery==2.4.1
 yfinance==0.2.66
+streamlit-autorefresh==1.0.1

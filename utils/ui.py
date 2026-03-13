@@ -79,66 +79,64 @@ def sidebar_config():
 
 def home_page():
     st.markdown(f"""
-                <div style='background:linear-gradient(135deg, rgba(113,97,239,0.12), rgba(149,127,239,0.05)); border:1px solid rgba(149,127,239,0.35); border-radius:18px; padding:38px 42px; margin-top:35px;'>
-                    <h2 style='color:{PRIMARY}; font-weight:800; margin-bottom:8px'>
-                        Portfolio Analytics Dashboard
+                <div style='background:linear-gradient(135deg, rgba(113,97,239,0.12), rgba(149,127,239,0.05)); border:1px solid rgba(149,127,239,0.35); border-radius:22px; padding:55px 50px; margin-top:35px;'>
+                    <h2 style='text-align:center; color:{PRIMARY}; font-weight:800; margin-bottom:8px'>
+                        Analyze Your Portfolio Like a Professional
                     </h2>
-                     <p style="font-size:16px; opacity:0.9; max-width:900px;">
+                     <p style='text-align:center; font-size:16px; opacity:0.9; max-width:900px; margin:auto;'>
                         An education-focused equity portfolio analytics dashboard designed to support learning and research.
                         It helps users understand how publicly available market data is translated into portfolio performance,
                         risk indicators, and fundamental metrics through structured analysis and clear visualizations.
                     </p>
-                    <hr style='margin:26px 0; border-color:rgba(149,127,239,0.3);' />
-                    <h3 style='color:{PRIMARY}; font-weight:700; margin-bottom:18px;'>
-                        What This Dashboard Delivers
-                    </h3>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;">
-                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
-                            <b>📈 Portfolio Performance</b>
-                            <p style="font-size:14px; margin-top:6px;">
-                                Returns, CAGR, allocation, cost basis, and historical price trends.
-                            </p>
+                    <hr style='margin:40px 0; border-color:rgba(149,127,239,0.3);' />
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:22px;">
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:16px; padding:22px;">
+                            <h3>📈 Portfolio Performance</h3>
+                            <p>Track returns, CAGR, allocation, and cost basis.</p>
+                            <p style="opacity:0.7;">Understand how your portfolio truly performs over time.</p>
                         </div>
-                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
-                            <b>⚠️ Risk Analytics</b>
-                            <p style="font-size:14px; margin-top:6px;">
-                                Volatility, drawdowns, beta, Sharpe & Sortino ratios with visual context.
-                            </p>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25);
+                                    border-radius:16px; padding:22px;">
+                            <h3>⚠️ Risk Intelligence</h3>
+                            <p>Volatility, Beta, Sharpe, Drawdowns.</p>
+                            <p style="opacity:0.7;">Measure risk before risk measures you.</p>
                         </div>
-                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
-                            <b>🏦 Fundamental Insights</b>
-                            <p style="font-size:14px; margin-top:6px;">
-                                Valuation, profitability, quality metrics with structured interpretation.
-                            </p>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25);
+                                    border-radius:16px; padding:22px;">
+                            <h3>🏦 Fundamental Analysis</h3>
+                            <p>Valuation, ROE, ROCE, margins & growth.</p>
+                            <p style="opacity:0.7;">Go beyond price. Understand business strength.</p>
                         </div>
-                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25); border-radius:14px; padding:18px;">
-                            <b>💸 Dividend Intelligence</b>
-                            <p style="font-size:14px; margin-top:6px;">
-                                Yield, income tracking, and growth trends.
-                            </p>
+                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(149,127,239,0.25);
+                                    border-radius:16px; padding:22px;">
+                            <h3>💸 Dividend Tracking</h3>
+                            <p>Yield, income, historical dividend trends.</p>
+                            <p style="opacity:0.7;">Track passive income generation clearly.</p>
                         </div>
                     </div>
-                    <hr style="margin:30px 0; border-color:rgba(149,127,239,0.3);" />
-                    <h3 style='color:{PRIMARY}; font-weight:700; margin-bottom:14px;'>
+                    <hr style='margin:45px 0; border-color:rgba(149,127,239,0.3);' />
+                    <h2 style='text-align:center; color:{PRIMARY}; margin-bottom:25px;'>
                         How to Get Started
-                    </h3>
-                    <ol style="font-size:15px; line-height:1.8; padding-left:20px;">
-                        <li>Add your stocks using the search panel.</li>
-                        <li>Select holding period and quantity for each stock.</li>
-                        <li>Click <b>Generate Analysis</b> to unlock insights.</li>
-                        <li>Explore dashboards, charts, and downloadable reports.</li>
-                    </ol>
-                    <hr style="margin:30px 0; border-color:rgba(149,127,239,0.3);" />
-                    <h3 style="color:{PRIMARY}; font-weight:700; margin-bottom:12px;">
-                        Built For
-                    </h3>
-                    <ul style="font-size:15px; line-height:1.7; padding-left:20px;">
-                        <li>📚 Students learning equity analysis and portfolio management</li>
-                        <li>📊 Aspiring analysts building real-world project portfolios</li>
-                        <li>💼 Investors seeking structured performance and risk evaluation</li>
-                    </ul>
-                    <hr style="margin:22px 0; border-color:rgba(149,127,239,0.25);" />
-                    <p style="font-size:13.5px; line-height:1.6; opacity:0.85;">
+                    </h2>
+                    <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:30px; text-align:center;">
+                        <div>
+                            <h3 style="color:{SECONDARY};">1️⃣ Add Stocks</h3>
+                            <p>Use the search panel on the left to select your holdings.</p>
+                        </div>
+                        <div>
+                            <h3 style="color:{SECONDARY};">2️⃣ Set Details</h3>
+                            <p>Choose holding period and quantity for each stock.</p>
+                        </div>
+                        <div>
+                            <h3 style="color:{SECONDARY};">3️⃣ Generate Analysis</h3>
+                            <p>Click the Generate button to unlock insights.</p>
+                        </div>
+                    </div>
+                    <hr style="margin:45px 0; border-color:rgba(149,127,239,0.25);" />
+                    <p style="text-align:center; font-size:13.5px; line-height:1.6; opacity:0.85;">
+                        Built using Python • Financial Metrics • Real Market Data • Educational Purpose
+                    </p>
+                    <p style="text-align:center; font-size:12px; opacity:0.6; margin-top:12px;">
                         <b>Disclaimer:</b> This dashboard is intended solely for educational and analytical purposes. 
                         Market data is sourced from publicly available free APIs and may be delayed, incomplete, or differ 
                         from official exchange data. This tool does not constitute investment advice.

@@ -1,11 +1,13 @@
-import streamlit as st
 import pandas as pd
+import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 from utils.ui import apply_custom_css, header, sidebar_config, home_page
 from utils.data_fetch import load_tickers, fetch_all_data
 from utils.analytics import portfolio_value_from_prices, compute_portfolio_metrics
 
 
-st.set_page_config(page_title='Portfolio Analysis Dashboard', layout='wide')
+st.set_page_config(page_title='Portfolio Analysis Dashboard', layout='wide', initial_sidebar_state="expanded")
+st_autorefresh(interval=15000, key="price_refresh")
 apply_custom_css()
 header()
 sidebar_config()

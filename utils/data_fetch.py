@@ -106,7 +106,16 @@ def first_price_after(series: pd.Series, start_dt: pd.Timestamp):
     return (series.index[0], float(series.iloc[0]))
 
 
-@st.cache_data(show_spinner=False)
+def live_price(ticker: str):
+    try:
+        t = yf.Ticker(ticker)
+        price = t.fast_info["last_price"]
+        return float(price)
+    except Exception:
+        return None
+
+
+@st.cache_data(show_spinner=False, ttl=60)
 def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.Timestamp]]):
     starts = []
     ends = []
@@ -158,7 +167,11 @@ def fetch_all_data(tickers: list, date_ranges: Dict[str, Tuple[pd.Timestamp, pd.
         idx, p = first_price_after(ser["Close"], s_dt)
         buy_date_actual[t] = idx
         buy_price[t] = p
-        latest_price[t] = float(ser["Close"].iloc[-1]) if (ser is not None and not ser.empty) else None
+        live = live_price(t)
+        if live is not None:
+            latest_price[t] = live
+        else:
+            latest_price[t] = float(ser["Close"].iloc[-1] if (ser is not None and not ser.empty) else None)
 
     available_close = [df["Close"].rename(t) for t, df in price_dict.items() if not df.empty]
     if available_close:

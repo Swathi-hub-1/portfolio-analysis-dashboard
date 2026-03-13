@@ -121,15 +121,15 @@ def home_page():
                     <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:30px; text-align:center;">
                         <div>
                             <h3 style="color:{SECONDARY};">1️⃣ Add Stocks</h3>
-                            <p>Use the search panel on the left to select your holdings.</p>
+                            <p>Search and add the stocks you want to analyze from the sidebar</p>
                         </div>
                         <div>
-                            <h3 style="color:{SECONDARY};">2️⃣ Set Details</h3>
-                            <p>Choose holding period and quantity for each stock.</p>
+                            <h3 style="color:{SECONDARY};">2️⃣ Configure Holdings</h3>
+                            <p>Set the holding period and quantity for each selected stock.</p>
                         </div>
                         <div>
                             <h3 style="color:{SECONDARY};">3️⃣ Generate Analysis</h3>
-                            <p>Click the Generate button to unlock insights.</p>
+                            <p>Click <b>Generate Analysis</b> to view portfolio insights and performance metrics.</p>
                         </div>
                     </div>
                     <hr style="margin:45px 0; border-color:rgba(149,127,239,0.25);" />
@@ -137,9 +137,11 @@ def home_page():
                         Built using Python • Financial Metrics • Real Market Data • Educational Purpose
                     </p>
                     <p style="text-align:center; font-size:12px; opacity:0.6; margin-top:12px;">
-                        <b>Disclaimer:</b> This dashboard is intended solely for educational and analytical purposes. 
-                        Market data is sourced from publicly available free APIs and may be delayed, incomplete, or differ 
-                        from official exchange data. This tool does not constitute investment advice.
+                        <b>Data Source:</b> Yahoo Finance (via yfinance and yahooquery libraries)
+                    </p>
+                    <p style="text-align:center; font-size:12px; opacity:0.6; margin-top:12px;">
+                        <b>Disclaimer:</b> Data may be delayed or differ from official exchange data. 
+                        This dashboard is for educational and analytical purposes only and does not constitute investment advice.
                     </p>
                 </div>""",unsafe_allow_html=True)
     

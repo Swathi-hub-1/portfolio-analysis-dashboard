@@ -107,17 +107,11 @@ streamlit run app.py
 Prepare an Excel file with stock tickers:
 
 | Ticker | Shares | Buy Date |
-|--------|--------|-----------|----------|
+|--------|--------|----------|
 | RELIANCE.NS | 50 | 2022-03-15 |
 | INFY.NS | 100 | 2021-08-10 |
 
 > Use `.NS` suffix for NSE-listed stocks, `.BO` for BSE. Any Yahoo Finance-supported ticker works.
-
----
-
-## Sample Output
-
-> *(Add a screenshot or GIF of your dashboard here — recruiters spend 15 seconds on a README; a visual keeps them longer)*
 
 ---
 

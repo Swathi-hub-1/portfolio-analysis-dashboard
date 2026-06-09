@@ -1,131 +1,144 @@
-Portfolio Analysis Dashboard
+# 📊 Portfolio Analysis Dashboard
 
-A fully interactive equity portfolio analytics dashboard built with Streamlit, providing insights across performance, risk, fundamentals, and dividends.
-The tool converts raw market data into easy-to-understand visual analytics suitable for beginners and advanced users alike.
+> **Live equity analytics platform** — institutional-grade risk metrics, fundamental screening, and dividend analysis on real-time market data.
 
+🚀 **[Open Live App](https://portfolio-analysis-dashboard.streamlit.app/)** &nbsp;|&nbsp; 🐍 Python &nbsp;|&nbsp; 📈 Finance &nbsp;|&nbsp; ☁️ Deployed on Streamlit Cloud
 
-About the Project
+---
 
-Portfolio Analysis Dashboard is a comprehensive tool designed to help users understand and analyze stock portfolios with the depth typically seen in institutional research platforms.
+## What This Does
 
-The application integrates:
-    Live market data from Yahoo Finance.
-    Analytics & performance metrics using Pandas, NumPy, and QuantStats.
-    Interactive visualizations using Plotly.
-    A clean, responsive Streamlit UI.
+Most retail portfolio tools show you returns. This one shows you *why* — decomposing performance into risk-adjusted metrics, fundamental quality signals, and income attribution the way institutional research desks do.
 
-This makes the dashboard suitable for retail investors, finance students, and analysts who need a lightweight, customizable analytics environment.
+Built by combining an MBA in Finance with Python to recreate the kind of analysis typically locked behind Bloomberg terminals or equity research platforms — and making it accessible for any portfolio.
 
+---
 
-Key Features
+## Live Demo
 
-1. Portfolio Overview
+Upload your holdings (ticker, quantity, buy price, buy date) and the dashboard instantly generates:
 
-Cumulative return, CAGR and active performance metrics
+| Analysis Module | Key Outputs |
+|---|---|
+| **Portfolio Overview** | Cumulative return, CAGR, unrealized P&L, position health scoring |
+| **Risk Analysis** | Sharpe, Sortino, Beta, VaR, CVaR, drawdown, rolling volatility |
+| **Fundamentals** | P/E, P/B, ROE, margins, DuPont decomposition, sector breakdown |
+| **Dividend & Income** | Dividend CAGR, yield on cost, cumulative income timeline |
+| **Export** | One-click Excel report + QuantStats HTML performance report |
 
-Best and worst performing holdings
+---
 
-Allocation breakdown and unrealized P/L
+## Why These Metrics Matter
 
-Position health classification (trend, RSI, 52-week zone, momentum)
+**Value at Risk (VaR) & CVaR** — quantifies the downside tail risk of the portfolio, not just average volatility. CVaR captures what happens *beyond* the VaR threshold — the expected loss in worst-case scenarios.
 
-2. Risk Analysis
+**DuPont Decomposition** — breaks ROE into net margin × asset turnover × leverage, revealing *why* a company is profitable or deteriorating. A rising ROE driven by leverage is a red flag; driven by margins, it's a quality signal.
 
-Annualized volatility, Sharpe ratio, Sortino ratio
+**Sortino Ratio** — unlike Sharpe, only penalises downside volatility. More relevant for evaluating asymmetric return profiles common in concentrated equity portfolios.
 
-Beta, Value-at-Risk (VaR), Conditional VaR (CVaR)
+**Yield on Cost** — dividend income as a percentage of your *original* purchase price, not current market value. A long-held position yielding 8% on cost may show only 2% current yield — this metric surfaces that compounding effect.
 
-Drawdown analysis
+---
 
-Correlation heatmap
+## Tech Stack
 
-Rolling volatility and rolling Sharpe
+```
+Data Layer      yfinance (live market data with intelligent caching)
+Processing      Python · Pandas · NumPy
+Risk Engine     Custom-built: VaR, CVaR, Beta, Drawdown, Rolling metrics
+Visualisation   Plotly (interactive charts) · QuantStats (performance reports)
+UI              Streamlit (modular tab architecture)
+Export          OpenPyXL (Excel) · QuantStats HTML
+Deployment      Streamlit Community Cloud
+```
 
-Risk vs. return scatter plot
+---
 
-3. Fundamentals
+## Project Structure
 
-Market cap, sector, valuation ratios (P/E, P/B), and EPS
+```
+portfolio-analysis-dashboard/
+│
+├── app.py                  # Entry point — routing and session state
+├── dashboard.py            # Core layout and tab orchestration
+│
+├── tabs/                   # One file per analysis module
+│   ├── overview.py         # Portfolio summary and position health
+│   ├── risk.py             # VaR, CVaR, Sharpe, drawdown analysis
+│   ├── fundamentals.py     # DuPont, valuation ratios, sector view
+│   └── dividends.py        # Income analysis and dividend CAGR
+│   └── reports.py          # Excel and QuantStats report generation
+│
+├── utils/                  # Shared logic
+│   ├── data_fetch.py       # yfinance wrapper with caching
+│   ├── analytics.py        # Risk and return computation engine
+│   └── charts.py           # Charts framework
+│   └── ui.py               # UI framework 
+│   └── helpers.py          # Conditional formatting
+│
+├── Tickers.xlsx            # Sample input file format
+└── requirements.txt
+```
 
-Profitability metrics such as ROE and margins
+---
 
-Company quality visualized through bubble charts
+## Getting Started
 
-Valuation distribution using box plots
+### Run Locally
 
-4. Dividend Analysis
-
-Total dividends received since purchase
-
-Dividend yield, yield on cost, and dividend CAGR
-
-Cumulative dividend timeline
-
-Income contribution by stock
-
-5. Reporting Tools
-
-Export complete Excel report
-
-Generate a QuantStats HTML performance report
-
-Intelligent caching for faster repeated analyses
-
-
-Why This Dashboard Is Useful
-
-Combines performance, risk, fundamentals, and dividends into one unified interface
-
-Provides professional-grade metrics normally found in equity research
-
-Beginner-friendly design with meaningful, well-structured insights
-
-Customizable date ranges, share quantities, and portfolio configuration
-
-Fast, efficient, and export-ready for academic or practical use
-
-
-Tech Stack
-
-Streamlit	                            Application UI
-yfinance	                            Market data 
-Pandas, NumPy	                        Data processing and calculations
-Plotly	                                Interactive visualizations
-QuantStats	                            Performance and risk reporting
-OpenPyXL	                            Excel export functionality
-
-
-Installation & Setup
-
-1. Clone the Repository
-git clone https://github.com/yourusername/portfolio-analysis-dashboard.git
+```bash
+# Clone the repository
+git clone https://github.com/Swathi-hub-1/portfolio-analysis-dashboard.git
 cd portfolio-analysis-dashboard
 
-2. Create & Activate a Virtual Environment
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate  -> macOS/Linux
-venv\Scripts\activate     -> Windows
+source venv/bin/activate        # macOS/Linux
+venv\Scripts\activate           # Windows
 
-3. Install Dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-4. Run the Dashboard
+# Launch
 streamlit run app.py
+```
 
+### Input Format
 
-Requirements (requirements.txt)
+Prepare an Excel file with stock tickers:
 
-streamlit
-yfinance
-pandas
-numpy
-plotly
-quantstats
-openpyxl
-python-dotenv
-requests
+| Ticker | Shares | Buy Price | Buy Date |
+|--------|--------|-----------|----------|
+| RELIANCE.NS | 50 | 2450.00 | 2022-03-15 |
+| INFY.NS | 100 | 1380.00 | 2021-08-10 |
 
+> Use `.NS` suffix for NSE-listed stocks, `.BO` for BSE. Any Yahoo Finance-supported ticker works.
 
-Author
+---
 
-Built by Swathi, combining finance knowledge with Python-based analytics to create tools for learning, research, and investment insights.
+## Sample Output
+
+> *(Add a screenshot or GIF of your dashboard here — recruiters spend 15 seconds on a README; a visual keeps them longer)*
+
+---
+
+## What I'd Build Next
+
+- DCF valuation module with customisable growth and discount rate assumptions
+- Peer comparison: plot your holdings against sector benchmarks
+- Portfolio optimisation using mean-variance (Markowitz efficient frontier)
+- News sentiment overlay using financial news APIs
+
+---
+
+## About
+
+Built by **Swathi Sri C.R.T** — MBA Finance & Operations (University of Madras), NISM-certified in Equity Research.
+
+This project started as a personal need: most free portfolio trackers show returns but not *risk-adjusted* performance or fundamental quality. The goal was to build something that thinks the way a buy-side analyst would — combining quantitative rigour with accessible output.
+
+📬 [swathisri.mba@outlook.com](mailto:swathisri.mba@outlook.com) &nbsp;|&nbsp; [LinkedIn](https://www.linkedin.com/in/swathi-sri-4b48602a0)
+
+---
+
+*Built with Python · Deployed on Streamlit Cloud · Data via Yahoo Finance*

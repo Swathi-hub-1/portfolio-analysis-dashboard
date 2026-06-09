@@ -16,7 +16,7 @@ Built by combining an MBA in Finance with Python to recreate the kind of analysi
 
 ## Live Demo
 
-Upload your holdings (ticker, quantity, buy price, buy date) and the dashboard instantly generates:
+Upload your holdings (ticker, quantity, buy date) and the dashboard instantly generates:
 
 | Analysis Module | Key Outputs |
 |---|---|
@@ -60,7 +60,6 @@ Deployment      Streamlit Community Cloud
 portfolio-analysis-dashboard/
 │
 ├── app.py                  # Entry point — routing and session state
-├── dashboard.py            # Core layout and tab orchestration
 │
 ├── tabs/                   # One file per analysis module
 │   ├── overview.py         # Portfolio summary and position health
@@ -107,10 +106,10 @@ streamlit run app.py
 
 Prepare an Excel file with stock tickers:
 
-| Ticker | Shares | Buy Price | Buy Date |
+| Ticker | Shares | Buy Date |
 |--------|--------|-----------|----------|
-| RELIANCE.NS | 50 | 2450.00 | 2022-03-15 |
-| INFY.NS | 100 | 1380.00 | 2021-08-10 |
+| RELIANCE.NS | 50 | 2022-03-15 |
+| INFY.NS | 100 | 2021-08-10 |
 
 > Use `.NS` suffix for NSE-listed stocks, `.BO` for BSE. Any Yahoo Finance-supported ticker works.
 

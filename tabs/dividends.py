@@ -160,15 +160,25 @@ def dividend_income(valid_tickers, div_dict, date_ranges, buy_price, latest_pric
             st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         st.markdown("<h3 style='color:#7161ef;'>Dividend Yield vs Growth — Portfolio Map</h3>", unsafe_allow_html=True)
-        fig = bubble_chart(df=div_df,
-                            x="Dividend Yield (%)",
-                            y=f"Dividend CAGR ({max_cagr_yr}Y)",
-                            size="Dividend Income(₹)",
-                            color="Ticker", 
-                            hover="Ticker",
-                            title="",
-                            reference_line=True)
-        st.plotly_chart(fig, width="stretch")
+        cagr_col = f"Dividend CAGR ({max_cagr_yr}Y)" if max_cagr_yr > 0 else "Dividend CAGR"
+        bubble_df = div_df.copy()
+        bubble_df["Dividend Income(₹)"] = pd.to_numeric(bubble_df["Dividend Income(₹)"], errors="coerce").fillna(0)
+        bubble_df[cagr_col] = pd.to_numeric(bubble_df[cagr_col], errors="coerce").fillna(0)
+        bubble_df["Dividend Yield (%)"] = pd.to_numeric(bubble_df["Dividend Yield (%)"], errors="coerce").fillna(0)
+        bubble_df["_size"] = bubble_df["Dividend Income(₹)"].clip(lower=0.01)
+        
+        if not bubble_df.empty:
+            fig = bubble_chart(df=bubble_df,
+                                x="Dividend Yield (%)",
+                                y=cagr_col,
+                                size="_size",
+                                color="Ticker", 
+                                hover="Ticker",
+                                title="",
+                                reference_line=True)
+            st.plotly_chart(fig, width="stretch")
+        else:
+            st.info("Insufficient data to render the yield vs growth map.")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         if not div_df.empty:

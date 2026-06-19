@@ -111,7 +111,7 @@ Prepare an Excel file with stock tickers:
 | RELIANCE.NS | Reliance Industries Limited |
 | INFY.NS | Infosys Limited |
 
-> Use `.NS` suffix for NSE-listed stocks, `.BO` for BSE. Any Yahoo Finance-supported ticker works.
+> Use `.NS` suffix for NSE-listed stocks. Any Yahoo Finance-supported ticker works.
 
 ---
 

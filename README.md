@@ -106,10 +106,10 @@ streamlit run app.py
 
 Prepare an Excel file with stock tickers:
 
-| Ticker | Shares | Buy Date |
-|--------|--------|----------|
-| RELIANCE.NS | 50 | 2022-03-15 |
-| INFY.NS | 100 | 2021-08-10 |
+| Ticker | Company Name |
+|--------|--------------|
+| RELIANCE.NS | Reliance Industries Limited |
+| INFY.NS | Infosys Limited |
 
 > Use `.NS` suffix for NSE-listed stocks, `.BO` for BSE. Any Yahoo Finance-supported ticker works.
 

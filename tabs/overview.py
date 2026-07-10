@@ -1,20 +1,22 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from utils.data_fetch import fetch_sector_industry
 from utils.analytics import compute_position_health, portfolio_unrealized_pnl
 from utils.helper import metric_row, safe_float
 from utils.charts import pie_chart, bar_chart, line_chart
 from utils.ui import color_rsi_category, color_gain_loss, color_trend_class, interpretation_box 
 
 
-def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict):
+def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict, tickers_df):
         st.markdown("<h2 style='text-align:center; color:#7161ef;'>Portfolio Summary Overview</h2>", unsafe_allow_html=True)
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
         share_values = {t: safe_float(latest_price.get(t)) * float(shares.get(t, 0)) for t in valid_tickers}
         total_value = float(sum(share_values.values())) if share_values else 0.0
         weights = {t: (share_values[t] / total_value if total_value > 0 else 0.0) for t in valid_tickers}
+
+        sector_map = tickers_df.set_index("Symbol")["Sector"].to_dict() if not tickers_df.empty else {}
+        industry_map = tickers_df.set_index("Symbol")["Industry"].to_dict() if not tickers_df.empty else {}
 
         gain_pct = {}
         gain_val = {}
@@ -26,9 +28,8 @@ def overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual
             sh = shares.get(t, 0)
             gain_pct[t] = ((lp - bp) / bp) if (bp and lp) else np.nan
             gain_val[t] = (lp-bp) * sh if (bp and lp and sh) else np.nan
-            info = fetch_sector_industry(t)
-            sectors.append(info.get("Sector"))
-            industries.append(info.get("Industry"))
+            sectors.append(sector_map.get(t))
+            industries.append(industry_map.get(t))
 
         best_stock = max(gain_pct, key=lambda k: gain_pct.get(k, -np.inf)) if gain_pct else None
         worst_stock = min(gain_pct, key=lambda k: gain_pct.get(k, np.inf)) if gain_pct else None 

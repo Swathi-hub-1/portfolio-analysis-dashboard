@@ -97,7 +97,7 @@ if st.session_state.generated:
 
     with tab1:
         from tabs.overview import overview
-        overview_df = overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict)
+        overview_df = overview(price_df, shares, metrics, buy_price, latest_price, buy_date_actual, valid_tickers, date_ranges, price_dict, tickers_df)
 
     with tab2:
         from tabs.risk import risk_analysis

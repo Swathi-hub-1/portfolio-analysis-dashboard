@@ -1,7 +1,6 @@
 import yfinance as yf
 import pandas as pd
 import streamlit as st
-from yahooquery import Ticker as yqt
 from dotenv import load_dotenv
 from typing import Tuple, Dict
 
@@ -22,8 +21,8 @@ def load_tickers(path: str = "Tickers.xlsx") -> pd.Series:
 
     df["Symbol"] = df["Symbol"].astype(str).str.strip().str.upper()
     df["Company Name"] = df["Company Name"].astype(str).fillna("").str.strip()
-    df["Sector"] = df["Sector"].astype(str).fillna("Unknown").str.strip()
-    df["Industry"] = df["Industry"].astype(str).fillna("Unknown").str.strip()
+    df["Sector"] = df["Sector"].astype(str).fillna("").str.strip()
+    df["Industry"] = df["Industry"].astype(str).fillna("").str.strip()
     df = df[df["Symbol"] != ""].drop_duplicates(subset=["Symbol"])
     df = df.reset_index(drop=True)
     return df[["Symbol", "Company Name", "Sector", "Industry"]]
@@ -41,28 +40,6 @@ def download_price_series(ticker: str, start: pd.Timestamp, end: pd.Timestamp) -
     except Exception:
         return pd.DataFrame(columns=["High", "Low", "Close"])
     
-
-@st.cache_data(show_spinner=False)
-def fetch_sector_industry(ticker: str) -> dict:
-    try:
-        t = yqt(ticker)
-        profile = t.summary_profile
-
-        if profile is None:
-            return {"Sector": "Unknown", "Industry": "Unknown"}
-
-        if not isinstance(profile, dict):
-            return {"Sector": "Unknown", "Industry": "Unknown"}
-
-        data = profile.get(ticker, {})
-
-        return {
-            "Sector": data.get("sector", "Unknown"),
-            "Industry": data.get("industry", "Unknown")}
-
-    except Exception:
-        return {"Sector": "Unknown", "Industry": "Unknown"}
-
     
 @st.cache_data(show_spinner=False)
 def fetch_fundamentals(ticker: str) -> dict:

@@ -317,8 +317,15 @@ def portfolio_unrealized_pnl(price_df: pd.DataFrame, shares: dict, buy_price: di
 
 
 def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
+    expected_columns = ["Ticker",
+                        "Volatility (Annualized)",
+                        "Beta",
+                        "Max Drawdown",
+                        "VaR 95%",
+                        "CVaR 95%",
+                        "Returns"]
     if price_df.empty or market_df.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=expected_columns)
     
     try:
         market_log_rtn = np.log(market_df["Close"] /  market_df["Close"].shift(1)).dropna()
@@ -366,7 +373,7 @@ def compute_stock_risk_metrics(price_df: pd.DataFrame, market_df: pd.DataFrame):
                         "CVaR 95%": cvar_95,
                         "Returns": stock_rtn})
 
-    df = pd.DataFrame(records)
+    df = pd.DataFrame(records, columns=expected_columns)
     df = df.dropna(subset=["Ticker"])
     return df
 

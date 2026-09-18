@@ -20,6 +20,11 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
 
         risk_df = compute_stock_risk_metrics(price_df[valid_tickers], market_df = st.session_state.loaded_data["market_df"])
 
+        if risk_df.empty:
+            st.warning("Risk metrics are temporarily unavailable because "
+                       "insufficient market data was received. "
+                       "Please refresh and try again.")
+
         st.markdown("<h3 style='color:#7161ef;'>Stock-Level Risk Metrics</h3>", unsafe_allow_html=True)
         if not risk_df.empty:
             display_risk_df = risk_df[["Ticker", "Volatility (Annualized)", "Beta", "Max Drawdown", "VaR 95%", "CVaR 95%"]].copy()
@@ -84,7 +89,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
         st.plotly_chart(fig_rolling, width="stretch")
         st.markdown("<hr style='opacity:0.2;'>", unsafe_allow_html=True)
 
-        if metrics['sharpe'] is not None:
+        if pd.notna(metrics['sharpe']):
             if metrics['sharpe'] < 0:
                 sharpe_performance = "underperforming"
             elif metrics['sharpe'] < 1.0:
@@ -94,7 +99,7 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
         else:
             sharpe_performance = "unavailable"
 
-        if metrics['sortino'] is not None:
+        if pd.notna(metrics['sortino']):
             if metrics['sortino'] < 0:
                 sortino_performance = "weak"
             elif metrics['sortino'] < 1.0:
@@ -103,9 +108,9 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
                 sortino_performance = "strong"
         else:
             sortino_performance = "unavailable"
-      
-        vol = metrics['volatility'] * 100
+
         if metrics['volatility'] is not None:
+            vol = metrics['volatility'] * 100
             if vol <= 10:
                 vol_performance = "low"
             elif vol <= 20 :
@@ -114,12 +119,19 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
                 vol_performance = "high"
         else:
             vol_performance = "unknown"
-        
-        stk_beta = risk_df[["Ticker", "Beta"]].dropna()
-        stk_weights = overview_df[["Ticker", "Weights %"]].dropna()
-        beta_df = stk_beta.merge(stk_weights, on="Ticker", how="inner")
-        beta_df["weight"] = beta_df["Weights %"] / 100
-        pf_beta = (beta_df["weight"] * beta_df["Beta"]).sum()
+
+        if (not risk_df.empty and {"Ticker", "Beta"}.issubset(risk_df.columns) and not overview_df.empty and {"Ticker", "Weights %"}.issubset(overview_df.columns)):
+            stk_beta = risk_df[["Ticker", "Beta"]].dropna()
+            stk_weights = overview_df[["Ticker", "Weights %"]].dropna()
+            beta_df = stk_beta.merge(stk_weights, on="Ticker", how="inner")
+            if not beta_df.empty:
+                beta_df["weight"] = beta_df["Weights %"] / 100
+                pf_beta = (beta_df["weight"] * beta_df["Beta"]).sum()
+            else:
+                pf_beta = None
+        else:
+            pf_beta = None
+
         if pf_beta is not None:
             if pf_beta < 1:
                 beta_performance = "defensive"
@@ -161,15 +173,23 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
             var_value = tail_var * tail_value 
             cvar_value = tail_cvar * tail_value
             tail_ratio = tail_cvar / tail_var if tail_var != 0 else np.nan
-
-        if tail_ratio < 1.3:
-            tail_risk_desc = "tail losses remain relatively contained beyond the VaR threshold"
-        elif tail_ratio < 2.0:
-            tail_risk_desc = "losses deepen meaningfully during extreme downside events"
         else:
-            tail_risk_desc = "the portfolio is exposed to fat-tailed risk, with severe losses during stress periods"
+            st.info("Risk ranking is unavailable because sufficient risk data could not be calculated.")
 
-        s_s_performance = "rewarded" if (metrics['sharpe'] >= 1 or metrics['sortino'] >= 1) else "only partially compensated"
+        if not rank_df.empty:
+            if tail_ratio < 1.3:
+                tail_risk_desc = "tail losses remain relatively contained beyond the VaR threshold"
+            elif tail_ratio < 2.0:
+                tail_risk_desc = "losses deepen meaningfully during extreme downside events"
+            else:
+                tail_risk_desc = "the portfolio is exposed to fat-tailed risk, with severe losses during stress periods"
+        else:
+            tail_risk_desc = "tail-risk assessment is unavailable because sufficient risk data could not be calculated"
+
+        if(pd.notna(metrics['sharpe']) and pd.notna(metrics['sortino'])):
+            s_s_performance = ("rewarded" if (metrics['sharpe'] >= 1 or metrics['sortino'] >= 1) else "only partially compensated")
+        else:
+            s_s_performance = "not fully assessable"
         overall = "active market exposure and elevated volatility" if beta_performance == "aggressive" and vol_performance == "high" else "market-aligned movements with measured volatility" if beta_performance == "market-aligned" else "defensive positioning with controlled volatility"
 
 

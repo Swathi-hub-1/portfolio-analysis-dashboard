@@ -161,6 +161,8 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
             var_value = tail_var * tail_value 
             cvar_value = tail_cvar * tail_value
             tail_ratio = tail_cvar / tail_var if tail_var != 0 else np.nan
+        else:
+            st.info("Risk ranking is unavailable because sufficient risk data could not be calculated.")
 
         if tail_ratio < 1.3:
             tail_risk_desc = "tail losses remain relatively contained beyond the VaR threshold"

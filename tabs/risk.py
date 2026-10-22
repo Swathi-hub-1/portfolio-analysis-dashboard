@@ -163,11 +163,14 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
             stable_stk = stable["Ticker"]
             risky_stk = risk["Ticker"]
 
+        tail_ticker = None
+        tail_var = tail_cvar = var_value = cvar_value = tail_ratio = np.nan
+
         if not rank_df.empty:
             tail_stk = rank_df.loc[rank_df["CVaR 95%"].idxmax()]
             tail_ticker = tail_stk["Ticker"]
             tail_value_row = overview_df.loc[overview_df["Ticker"] == tail_ticker, "Share Value (₹)"]
-            tail_value = tail_value_row.iloc[0]
+            tail_value = float(tail_value_row.iloc[0]) if not tail_value_row.empty else 0.0
             tail_var = tail_stk["VaR 95%"]
             tail_cvar = tail_stk["CVaR 95%"]
             var_value = tail_var * tail_value 
@@ -199,8 +202,10 @@ def risk_analysis(metrics, price_df, valid_tickers, pf_returns, overview_df):
                    f"At the portfolio level, volatility is assessed as {vol_performance}, with a Sharpe ratio of {metrics['sharpe']:.2f} indicating overall risk-adjusted performance is {sharpe_performance}, " 
                    f"and a Sortino ratio of {metrics['sortino']:.2f} reflects {sortino_performance} downside risk management.",
 
-                   f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f}), " 
-                   f"while CVaR increases to {tail_cvar:.2%} (around ₹{cvar_value:,.0f}) during extreme market conditions, indicating that {tail_risk_desc}.",
+                   (f"{tail_ticker} contributes the highest downside exposure. At the 95% confidence level, VaR implies a potential loss of {tail_var:.2%} (approximately ₹{var_value:,.0f}), " 
+                   f"while CVaR increases to {tail_cvar:.2%} (around ₹{cvar_value:,.0f}) during extreme market conditions, indicating that {tail_risk_desc}."
+                   if tail_ticker is not None else
+                   f"Stock-level VaR/CVaR summary is unavailable because sufficient valid risk data could not be calculated. {tail_risk_desc}."),
 
                    f"Overall risk structure suggests that portfolio fluctuations are primarily driven by {overall}, while drawdown behavior remains {dd_performance}. " 
                    f"Combined Sharpe and Sortino ratios suggest that portfolio's risk-taking has been {s_s_performance}, resulting in a {'balanced' if sharpe_performance == 'efficient' and sortino_performance == 'strong' else 'cautious'} overall risk profile."]
